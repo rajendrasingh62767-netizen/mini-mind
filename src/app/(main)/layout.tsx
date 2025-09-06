@@ -15,6 +15,8 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { currentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import ChatWidget from "@/components/chat/ChatWidget"
+import { Button } from "@/components/ui/button"
+import Link from "next/link"
 
 export default function MainLayout({
   children,
@@ -40,12 +42,6 @@ export default function MainLayout({
                 <SidebarMenuButton href="/messages">
                   <MessageCircle />
                   Messages
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href={`/profile/${currentUser.id}`}>
-                  <User />
-                  Profile
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
@@ -94,6 +90,17 @@ export default function MainLayout({
             </header>
             <main>{children}</main>
         </SidebarInset>
+        <div className="fixed bottom-6 right-24 flex gap-4">
+            <Link href={`/profile/${currentUser.id}`} passHref>
+                <Button
+                    className="w-16 h-16 rounded-full shadow-lg"
+                    size="icon"
+                    aria-label="Profile"
+                >
+                    <User className="h-8 w-8" />
+                </Button>
+            </Link>
+        </div>
         <ChatWidget />
       </div>
     </SidebarProvider>
