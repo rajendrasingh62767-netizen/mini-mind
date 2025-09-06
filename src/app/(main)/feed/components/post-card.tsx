@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { ThumbsUp, MessageSquare, Share2 } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
+import Link from "next/link"
 
 interface PostCardProps {
   post: Post
@@ -17,12 +18,16 @@ export default function PostCard({ post, author }: PostCardProps) {
     <Card>
       <CardHeader className="p-4">
         <div className="flex items-center gap-3">
-          <Avatar>
-            <AvatarImage src={author.avatarUrl} alt={author.name} />
-            <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
-          </Avatar>
+          <Link href={`/profile/${author.id}`}>
+            <Avatar>
+              <AvatarImage src={author.avatarUrl} alt={author.name} />
+              <AvatarFallback>{author.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+          </Link>
           <div>
-            <p className="font-semibold">{author.name}</p>
+            <Link href={`/profile/${author.id}`} className="hover:underline">
+              <p className="font-semibold">{author.name}</p>
+            </Link>
             <p className="text-xs text-muted-foreground">{timeAgo}</p>
           </div>
         </div>

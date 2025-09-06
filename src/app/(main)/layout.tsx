@@ -43,7 +43,7 @@ export default function MainLayout({
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
-                <SidebarMenuButton href="/profile">
+                <SidebarMenuButton href={`/profile/${currentUser.id}`}>
                   <User />
                   Profile
                 </SidebarMenuButton>
