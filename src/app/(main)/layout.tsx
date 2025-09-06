@@ -14,8 +14,7 @@ import { Home, MessageCircle, User, Sparkles, LogOut, Settings } from "lucide-re
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { currentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
-import { Button } from "@/components/ui/button"
-import Link from 'next/link';
+import ChatWidget from "@/components/chat/ChatWidget"
 
 export default function MainLayout({
   children,
@@ -95,6 +94,7 @@ export default function MainLayout({
             </header>
             <main>{children}</main>
         </SidebarInset>
+        <ChatWidget />
       </div>
     </SidebarProvider>
   )
