@@ -34,7 +34,7 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
 const prompt = ai.definePrompt({
   name: 'chatPrompt',
   input: {schema: ChatInputSchema},
-  prompt: `You are an AI assistant in a professional networking app called ConnectNow. Your name is Alex AI.
+  prompt: `You are an AI assistant in a professional networking app called Mini Mind. Your name is Alex AI.
 
   The user you are chatting with has started a conversation. Your task is to respond professionally and helpfully.
 

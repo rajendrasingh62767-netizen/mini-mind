@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 
 export const metadata: Metadata = {
-  title: 'ConnectNow',
+  title: 'Mini Mind',
   description: 'A professional social networking application.',
 };
 
