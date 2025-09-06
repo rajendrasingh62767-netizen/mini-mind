@@ -10,7 +10,8 @@
 
 import {ai} from '@/ai/genkit';
 import {z} from 'genkit';
-import {Message} from '@/lib/types';
+import {Message, User} from '@/lib/types';
+import {users} from '@/lib/data';
 
 const ChatInputSchema = z.object({
   history: z.array(
@@ -22,6 +23,20 @@ const ChatInputSchema = z.object({
     })
   ),
   newMessage: z.string(),
+  currentUser: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    avatarUrl: z.string(),
+    description: z.string(),
+  }),
+  participant: z.object({
+    id: z.string(),
+    name: z.string(),
+    email: z.string(),
+    avatarUrl: z.string(),
+    description: z.string(),
+  }),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -34,17 +49,20 @@ export async function chat(input: ChatInput): Promise<ChatOutput> {
 const prompt = ai.definePrompt({
   name: 'chatPrompt',
   input: {schema: ChatInputSchema},
-  prompt: `You are an AI assistant in a professional networking app called Mini Mind. Your name is Alex AI.
+  prompt: `You are acting as a user in a professional networking app called Mini Mind.
 
-  The user you are chatting with has started a conversation. Your task is to respond professionally and helpfully.
+  Your name is {{{participant.name}}}, and your persona is: "{{{participant.description}}}".
+  You are having a conversation with {{{currentUser.name}}}, whose persona is: "{{{currentUser.description}}}".
+
+  Do not reveal that you are an AI. Act as {{{participant.name}}}.
 
   Here is the conversation history (the last message is the newest):
   {{#each history}}
-  - {{#if (eq senderId "user-1")}}You{{else}}AI{{/if}}: {{{text}}}
+  - {{#if (eq senderId currentUser.id)}}{{currentUser.name}}{{else}}{{{participant.name}}}{{/if}}: {{{text}}}
   {{/each}}
-  - You: {{{newMessage}}}
+  - {{{currentUser.name}}}: {{{newMessage}}}
 
-  Your response should be just the text of your message.
+  Your response should be just the text of your message, from the perspective of {{{participant.name}}}.
 `,
 });
 

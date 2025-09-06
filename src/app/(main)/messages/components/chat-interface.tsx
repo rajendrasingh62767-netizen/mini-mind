@@ -42,7 +42,7 @@ export default function ChatInterface({ conversation: initialConversation }: Cha
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isLoading) return;
+    if (!newMessage.trim() || isLoading || !participant) return;
 
     const userMessage: Message = {
       id: `msg-${Date.now()}`,
@@ -51,13 +51,16 @@ export default function ChatInterface({ conversation: initialConversation }: Cha
       timestamp: new Date().toISOString(),
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const newMessages = [...messages, userMessage];
+    setMessages(newMessages);
     setNewMessage("");
     setIsLoading(true);
 
     const result = await getAiResponse({
       history: messages,
-      newMessage: newMessage
+      newMessage: newMessage,
+      currentUser: currentUser,
+      participant: participant,
     });
 
     if (result.success && participant) {
