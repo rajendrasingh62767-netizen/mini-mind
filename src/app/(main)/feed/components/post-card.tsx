@@ -1,3 +1,6 @@
+"use client"
+
+import { useState } from "react"
 import { Post, User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -5,6 +8,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { ThumbsUp, MessageSquare, Share2 } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
+import { cn } from "@/lib/utils"
 
 interface PostCardProps {
   post: Post
@@ -13,6 +17,17 @@ interface PostCardProps {
 
 export default function PostCard({ post, author }: PostCardProps) {
   const timeAgo = formatDistanceToNow(new Date(post.timestamp), { addSuffix: true });
+  const [likes, setLikes] = useState(post.likes);
+  const [isLiked, setIsLiked] = useState(false);
+
+  const handleLike = () => {
+    if (isLiked) {
+      setLikes(likes - 1);
+    } else {
+      setLikes(likes + 1);
+    }
+    setIsLiked(!isLiked);
+  };
 
   return (
     <Card>
@@ -37,14 +52,14 @@ export default function PostCard({ post, author }: PostCardProps) {
       </CardContent>
       <CardFooter className="px-4 py-2 flex justify-between items-center border-t">
         <div className="flex gap-1 text-muted-foreground text-sm">
-            <span>{post.likes} Likes</span>
+            <span>{likes} Likes</span>
             &middot;
             <span>{post.comments} Comments</span>
         </div>
         <div className="flex gap-1">
-          <Button variant="ghost" size="sm">
-            <ThumbsUp className="mr-2 h-4 w-4" />
-            Like
+          <Button variant="ghost" size="sm" onClick={handleLike} className={cn(isLiked ? "text-primary hover:text-primary" : "")}>
+            <ThumbsUp className={cn("mr-2 h-4 w-4", isLiked && "fill-current")} />
+            {isLiked ? 'Liked' : 'Like'}
           </Button>
           <Button variant="ghost" size="sm">
             <MessageSquare className="mr-2 h-4 w-4" />
