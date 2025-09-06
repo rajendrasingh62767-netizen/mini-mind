@@ -36,7 +36,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                   </Button>
                 )}
               </div>
-              <p className="text-muted-foreground">{user.description}</p>
+              <p className="text-muted-foreground">{user.email}</p>
+              <p className="text-muted-foreground pt-2">{user.description}</p>
             </div>
           </div>
         </CardContent>

@@ -17,6 +17,7 @@ import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import ChatWidget from "@/components/chat/ChatWidget"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
+import ProfileWidget from "@/components/profile/ProfileWidget"
 
 export default function MainLayout({
   children,
@@ -69,7 +70,7 @@ export default function MainLayout({
                     </SidebarMenuItem>
                 </SidebarMenu>
              </div>
-            <div className="flex items-center gap-3 w-full">
+            <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-3 w-full">
               <Avatar>
                 <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
                 <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
@@ -78,7 +79,7 @@ export default function MainLayout({
                 <span className="font-semibold text-sm truncate">{currentUser.name}</span>
                 <span className="text-muted-foreground text-xs truncate">{currentUser.email}</span>
               </div>
-            </div>
+            </Link>
           </SidebarFooter>
         </Sidebar>
         <SidebarInset className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
@@ -91,15 +92,7 @@ export default function MainLayout({
             <main>{children}</main>
         </SidebarInset>
         <div className="fixed bottom-6 right-24 flex gap-4">
-            <Link href={`/profile/${currentUser.id}`} passHref>
-                <Button
-                    className="w-16 h-16 rounded-full shadow-lg"
-                    size="icon"
-                    aria-label="Profile"
-                >
-                    <User className="h-8 w-8" />
-                </Button>
-            </Link>
+            <ProfileWidget />
         </div>
         <ChatWidget />
       </div>
