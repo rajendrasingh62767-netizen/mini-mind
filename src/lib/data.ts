@@ -42,6 +42,14 @@ export let users: User[] = [
     avatarUrl: 'https://picsum.photos/seed/rajneesh/100/100',
     description: 'A new user of Mini Mind.',
   },
+  {
+    id: 'user-6',
+    name: 'Rajendra Singh',
+    username: 'rajendras',
+    email: 'Rajendrasingh62767@gmail.com',
+    avatarUrl: 'https://picsum.photos/seed/rajendra/100/100',
+    description: 'A new user of Mini Mind.',
+  },
 ];
 
 export const posts: Post[] = [
