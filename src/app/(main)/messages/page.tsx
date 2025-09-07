@@ -85,7 +85,7 @@ export default function MessagesPage() {
 
     return () => unsubscribe();
 
-  }, [currentUser, searchParams]);
+  }, [currentUser, searchParams, selectedConversation]);
 
   const getParticipant = useCallback((convo: ConversationType) => {
     if (!currentUser) return null;
