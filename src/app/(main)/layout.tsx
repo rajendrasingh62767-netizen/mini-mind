@@ -10,7 +10,7 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar"
-import { Home, MessageCircle, User, Sparkles, LogOut, Settings } from "lucide-react"
+import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { currentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
@@ -43,6 +43,12 @@ export default function MainLayout({
                 <SidebarMenuButton href="/messages">
                   <MessageCircle />
                   Messages
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton href="/search">
+                  <Search />
+                  Search
                 </SidebarMenuButton>
               </SidebarMenuItem>
               <SidebarMenuItem>
