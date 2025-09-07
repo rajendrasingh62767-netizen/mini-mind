@@ -1,17 +1,18 @@
+
 "use client"
-import { useState, useEffect, useReducer } from "react"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications as initialNotifications, followUser, unfollowUser } from "@/lib/data"
+import { users as initialUsers, getFollowers, getFollowing, followUser, unfollowUser } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
-import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft, Grid3x3, AlignJustify } from "lucide-react"
+import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft, Grid3x3, AlignJustify, Loader2 } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User, Post } from "@/lib/types"
 import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
-import { collection, query, where, getDocs, addDoc, serverTimestamp, doc } from "firebase/firestore"
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc, onSnapshot, orderBy } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { cn } from "@/lib/utils"
 import Image from "next/image"
@@ -25,8 +26,9 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const [following, setFollowing] = useState<User[]>([]);
   const [hoveringFollow, setHoveringFollow] = useState(false);
   const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
+  const [userPosts, setUserPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
   
   useEffect(() => {
     const loggedInUser = getLoggedInUser();
@@ -40,28 +42,68 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const user = users.find((u) => u.id === params.userId)
 
   useEffect(() => {
+    if (!user) return;
+
+     // Listen for posts by the user
+    const postsQuery = query(collection(db, "posts"), where("authorId", "==", user.id), orderBy("timestamp", "desc"));
+    const postsUnsubscribe = onSnapshot(postsQuery, (snapshot) => {
+        const postsData: Post[] = [];
+        snapshot.forEach(doc => postsData.push({ id: doc.id, ...doc.data() } as Post));
+        setUserPosts(postsData);
+        setIsLoading(false);
+    });
+
+    return () => postsUnsubscribe();
+  }, [user?.id]);
+
+
+  useEffect(() => {
     if (currentUser && user) {
-        const followExists = initialNotifications.some(
-            n => n.type === 'follow' &&
-            n.fromUserId === currentUser.id && n.toUserId === user.id
+        // Check if current user is following the profile user
+        const notifQuery = query(collection(db, "notifications"), 
+            where("type", "==", "follow"),
+            where("fromUserId", "==", currentUser.id),
+            where("toUserId", "==", user.id)
         );
-        setIsFollowing(followExists);
-        setFollowers(getFollowers(user.id));
-        setFollowing(getFollowing(user.id));
+        const unsubscribe = onSnapshot(notifQuery, (snapshot) => {
+            setIsFollowing(!snapshot.empty);
+        });
+
+        // Get followers and following lists
+        const updateFollows = async () => {
+            const followersList = await getFollowers(user.id);
+            const followingList = await getFollowing(user.id);
+            setFollowers(followersList);
+            setFollowing(followingList);
+        };
+        updateFollows();
+
+        // Also listen for changes to update follow counts in real-time
+         const followListenerQuery = query(collection(db, "notifications"), where("type", "==", "follow"));
+         const followUnsubscribe = onSnapshot(followListenerQuery, (snapshot) => {
+              updateFollows();
+         });
+
+        return () => {
+            unsubscribe();
+            followUnsubscribe();
+        }
     }
-  }, [currentUser, user, _]);
+  }, [currentUser, user]);
 
 
   if (!user) {
     return notFound();
   }
 
-  const userPosts = initialPosts.filter((post) => post.authorId === user.id).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   const isCurrentUser = currentUser ? user.id === currentUser.id : false;
 
   const handleProfileUpdate = (updatedUser: User) => {
+    // In a real app, we'd update this in the database.
+    // For now, update local state.
     const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
     setUsers(updatedUsers);
+    initialUsers.splice(initialUsers.findIndex(u => u.id === updatedUser.id), 1, updatedUser);
     
     if (isCurrentUser) {
         setCurrentUser(updatedUser);
@@ -104,15 +146,11 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const handleFollow = () => {
     if (!currentUser || !user) return;
     followUser(currentUser.id, user.id);
-    setIsFollowing(true);
-    forceUpdate();
   }
   
   const handleUnfollow = () => {
     if (!currentUser || !user) return;
     unfollowUser(currentUser.id, user.id);
-    setIsFollowing(false);
-    forceUpdate();
   }
   
   if (!currentUser) {
@@ -184,7 +222,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                         </div>
                     )}
                      <Button variant="ghost" size="icon" onClick={() => router.push('/feed')} className="hidden sm:inline-flex">
-                        <ArrowLeft className="h-5 w.5" />
+                        <ArrowLeft className="h-5 w-5" />
                         <span className="sr-only">Back</span>
                     </Button>
                 </div>
@@ -237,7 +275,9 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         </div>
 
         <div className="pt-6">
-        {userPosts.length > 0 ? (
+        {isLoading ? (
+             <div className="flex justify-center py-10"><Loader2 className="h-8 w-8 animate-spin" /></div>
+        ) : userPosts.length > 0 ? (
            viewMode === 'grid' ? (
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4">
                   {userPosts.filter(p => p.mediaUrl && p.mediaType === 'image').map((post) => (

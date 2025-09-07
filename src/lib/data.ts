@@ -1,5 +1,8 @@
 import { User, Post, Conversation, Notification } from '@/lib/types';
 import { getLoggedInUser } from './auth';
+import { db } from './firebase';
+import { addDoc, collection, deleteDoc, getDocs, query, where } from 'firebase/firestore';
+
 
 export let users: User[] = [
   {
@@ -52,178 +55,48 @@ export let users: User[] = [
   },
 ];
 
-export let posts: Post[] = [
-  {
-    id: 'post-5',
-    authorId: 'user-1',
-    content: 'Exploring the mountains today! #nature #hiking',
-    timestamp: '2024-05-22T12:00:00Z',
-    likes: 15,
-    comments: 2,
-    mediaUrl: 'https://picsum.photos/id/1015/600/600',
-    mediaType: 'image',
-  },
-   {
-    id: 'post-6',
-    authorId: 'user-1',
-    content: 'A beautiful sunset.',
-    timestamp: '2024-05-21T18:30:00Z',
-    likes: 45,
-    comments: 8,
-    mediaUrl: 'https://picsum.photos/id/1016/600/600',
-    mediaType: 'image',
-  },
-  {
-    id: 'post-1',
-    authorId: 'user-2',
-    content: 'Excited to share that our new feature has officially launched! A big thank you to the entire team for their hard work and dedication. #productlaunch #tech #innovation',
-    timestamp: '2024-05-20T10:00:00Z',
-    likes: 124,
-    comments: 18,
-  },
-  {
-    id: 'post-2',
-    authorId: 'user-1',
-    content: 'Just published a new article on "The Future of Generative AI in Software Development". Would love to hear your thoughts! Link in comments. #AI #MachineLearning #FutureOfTech',
-    timestamp: '2024-05-19T15:30:00Z',
-    likes: 256,
-    comments: 42,
-  },
-  {
-    id: 'post-3',
-    authorId: 'user-3',
-    content: 'The key to great design is empathy. Understanding the user\'s needs and pain points is the first step towards creating something truly valuable. #UX #DesignThinking #UserExperience',
-    timestamp: '2024-05-18T09:15:00Z',
-    likes: 301,
-    comments: 35,
-  },
-  {
-    id: 'post-4',
-    authorId: 'user-4',
-    content: 'Our latest marketing campaign just went live! We focused on authentic storytelling to build a stronger connection with our community. #Marketing #Branding #Storytelling',
-    timestamp: '2024-05-20T11:45:00Z',
-    likes: 98,
-    comments: 12,
-  },
-];
+// This is now legacy data, kept for user info and initial seeding if necessary.
+// App will now use Firestore for posts.
+export let posts: Post[] = [];
 
-export let conversations: Conversation[] = [
-    {
-    id: 'conv-1',
-    participantIds: ['user-1', 'user-2'],
-    messages: [
-      { id: 'msg-1', senderId: 'user-2', text: 'Hey Alex, great article on AI! I have a few ideas on how we could integrate some of those concepts into our product.', timestamp: '2024-05-19T16:00:00Z' },
-      { id: 'msg-2', senderId: 'user-1', text: 'Thanks, Samantha! I\'d love to hear them. Are you free to chat tomorrow morning?', timestamp: '2024-05-19T16:05:00Z' },
-       { id: 'msg-3', senderId: 'user-2', text: 'Absolutely. How about 10 AM?', timestamp: '2024-05-19T16:06:00Z' },
-    ],
-  },
-  {
-    id: 'conv-2',
-    participantIds: ['user-1', 'user-3'],
-    messages: [
-      { id: 'msg-4', senderId: 'user-3', text: 'Michael here. I was really impressed by your presentation last week. Your insights into backend architecture were fascinating.', timestamp: '2024-05-18T11:00:00Z' },
-      { id: 'msg-5', senderId: 'user-1', text: 'Thanks, Michael! Glad you found it useful. Your design work is top-notch, by the way.', timestamp: '2024-05-18T11:10:00Z' },
-    ],
-  },
-    {
-    id: 'conv-3',
-    participantIds: ['user-1', 'user-4'],
-    messages: [
-      { id: 'msg-6', senderId: 'user-4', text: 'Hi Alex, saw your profile and thought we could connect. I\'m always looking to network with tech leaders.', timestamp: '2024-05-20T14:00:00Z' },
-    ],
-  },
-];
+export let conversations: Conversation[] = [];
 
-export let notifications: Notification[] = [
-    {
-        id: 'notif-1',
-        type: 'like',
-        fromUserId: 'user-3',
-        toUserId: 'user-1',
-        postId: 'post-2',
-        timestamp: '2024-05-20T12:00:00Z',
-        read: false,
-    },
-    {
-        id: 'notif-2',
-        type: 'follow',
-        fromUserId: 'user-4',
-        toUserId: 'user-1',
-        timestamp: '2024-05-20T14:05:00Z',
-        read: true,
-    },
-     {
-        id: 'notif-3',
-        type: 'like',
-        fromUserId: 'user-1',
-        toUserId: 'user-2',
-        postId: 'post-1',
-        timestamp: '2024-05-21T09:30:00Z',
-        read: false,
-    },
-     {
-        id: 'notif-4',
-        type: 'follow',
-        fromUserId: 'user-2',
-        toUserId: 'user-1',
-        timestamp: '2024-05-21T10:00:00Z',
-        read: false,
-    },
-];
-
-const NOTIFICATIONS_STORAGE_KEY = 'mini-mind-notifications';
-
-function loadNotifications() {
-    if (typeof window !== 'undefined') {
-        const storedNotifications = window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
-        if (storedNotifications) {
-            try {
-                const parsed = JSON.parse(storedNotifications);
-                if (Array.isArray(parsed)) {
-                    notifications = parsed;
-                }
-            } catch (e) {
-                console.error("Failed to parse notifications from localStorage", e);
-            }
-        }
-    }
-}
+// Notifications are also now stored in Firestore
+export let notifications: Notification[] = [];
 
 
-function saveNotifications() {
-    if (typeof window !== 'undefined') {
-        window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
-    }
-}
-
-loadNotifications();
-
-
-export function followUser(fromUserId: string, toUserId: string) {
-    const alreadyFollowing = notifications.some(
-        n => n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId
+export async function followUser(fromUserId: string, toUserId: string) {
+    const notificationsRef = collection(db, "notifications");
+    const q = query(notificationsRef, 
+        where("type", "==", "follow"),
+        where("fromUserId", "==", fromUserId),
+        where("toUserId", "==", toUserId)
     );
-    if (!alreadyFollowing) {
-        notifications.unshift({
-            id: `notif-${Date.now()}`,
+
+    const querySnapshot = await getDocs(q);
+    if (querySnapshot.empty) {
+        await addDoc(notificationsRef, {
             type: 'follow',
             fromUserId: fromUserId,
             toUserId: toUserId,
-            timestamp: new Date().toISOString(),
+            timestamp: new Date(),
             read: false,
         });
-        saveNotifications();
     }
 }
 
-export function unfollowUser(fromUserId: string, toUserId: string) {
-    const initialLength = notifications.length;
-    notifications = notifications.filter(
-        n => !(n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId)
+export async function unfollowUser(fromUserId: string, toUserId: string) {
+    const notificationsRef = collection(db, "notifications");
+    const q = query(notificationsRef, 
+        where("type", "==", "follow"),
+        where("fromUserId", "==", fromUserId),
+        where("toUserId", "==", toUserId)
     );
-    if (notifications.length < initialLength) {
-        saveNotifications();
-    }
+
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach(async (doc) => {
+        await deleteDoc(doc.ref);
+    });
 }
 
 
@@ -245,16 +118,20 @@ export function getCurrentUser(): User {
   return users[0]; 
 };
 
-export function getFollowers(userId: string): User[] {
-    const followerIds = notifications
-        .filter(n => n.type === 'follow' && n.toUserId === userId)
-        .map(n => n.fromUserId);
+export async function getFollowers(userId: string): Promise<User[]> {
+    const notificationsRef = collection(db, "notifications");
+    const q = query(notificationsRef, where("type", "==", "follow"), where("toUserId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    const followerIds = querySnapshot.docs.map(doc => doc.data().fromUserId);
     return users.filter(u => followerIds.includes(u.id));
 }
 
-export function getFollowing(userId: string): User[] {
-    const followingIds = notifications
-        .filter(n => n.type === 'follow' && n.fromUserId === userId)
-        .map(n => n.toUserId);
+export async function getFollowing(userId: string): Promise<User[]> {
+    const notificationsRef = collection(db, "notifications");
+    const q = query(notificationsRef, where("type", "==", "follow"), where("fromUserId", "==", userId));
+    const querySnapshot = await getDocs(q);
+    
+    const followingIds = querySnapshot.docs.map(doc => doc.data().toUserId);
     return users.filter(u => followingIds.includes(u.id));
 }

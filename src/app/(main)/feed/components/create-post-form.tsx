@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState } from "react";
@@ -6,20 +7,38 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
 import type { User } from "@/lib/types";
+import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 interface CreatePostFormProps {
-  onNewPost: (content: string) => void;
+  onNewPost?: (content: string) => void;
   currentUser: User;
 }
 
 export default function CreatePostForm({ onNewPost, currentUser }: CreatePostFormProps) {
   const [content, setContent] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (content.trim()) {
-      onNewPost(content);
+    if (!content.trim() || !currentUser) return;
+    
+    setIsLoading(true);
+
+    try {
+      await addDoc(collection(db, "posts"), {
+        authorId: currentUser.id,
+        content: content,
+        timestamp: serverTimestamp(),
+        likes: 0,
+        comments: 0,
+      });
       setContent("");
+      onNewPost?.(content); // Optional callback
+    } catch (error) {
+      console.error("Error creating post:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -41,7 +60,9 @@ export default function CreatePostForm({ onNewPost, currentUser }: CreatePostFor
                 onChange={(e) => setContent(e.target.value)}
               />
               <div className="flex justify-end mt-2">
-                <Button type="submit" disabled={!content.trim()}>Post</Button>
+                <Button type="submit" disabled={!content.trim() || isLoading}>
+                  {isLoading ? 'Posting...' : 'Post'}
+                </Button>
               </div>
             </form>
           </div>

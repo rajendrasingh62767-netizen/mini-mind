@@ -11,7 +11,7 @@ export interface Post {
   id: string;
   authorId: string;
   content: string;
-  timestamp: string;
+  timestamp: any; // Allow for Firestore ServerTimestamp
   likes: number;
   comments: number;
   mediaUrl?: string;
@@ -38,6 +38,6 @@ export interface Notification {
     fromUserId: string;
     toUserId: string;
     postId?: string; // only for 'like' type
-    timestamp: string;
+    timestamp: any; // Allow for Firestore ServerTimestamp
     read: boolean;
 }

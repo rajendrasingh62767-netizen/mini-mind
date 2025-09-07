@@ -10,58 +10,91 @@ import { ThumbsUp, MessageSquare, Share2 } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { notifications, posts as allPosts } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
 import Image from "next/image"
-
+import { db } from "@/lib/firebase"
+import { collection, query, where, getDocs, addDoc, deleteDoc, doc, onSnapshot, updateDoc, increment } from "firebase/firestore"
 
 interface PostCardProps {
   post: Post
   author: User
 }
 
-// In a real app, this would be stored per-user in a database
-const likedPosts = new Set<string>();
 
 export default function PostCard({ post, author }: PostCardProps) {
-  const timeAgo = formatDistanceToNow(new Date(post.timestamp), { addSuffix: true });
   const [likes, setLikes] = useState(post.likes);
-  const [isLiked, setIsLiked] = useState(likedPosts.has(post.id));
+  const [isLiked, setIsLiked] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [likeDocId, setLikeDocId] = useState<string | null>(null);
+  const [timeAgo, setTimeAgo] = useState("");
 
   useEffect(() => {
+    if (post.timestamp) {
+        const date = post.timestamp.toDate ? post.timestamp.toDate() : new Date(post.timestamp);
+        setTimeAgo(formatDistanceToNow(date, { addSuffix: true }));
+    }
     setCurrentUser(getLoggedInUser());
-  }, []);
+  }, [post.timestamp]);
 
-  const handleLike = () => {
-    const postToUpdate = allPosts.find(p => p.id === post.id);
-    if (!postToUpdate) return;
 
-    if (isLiked) {
-      postToUpdate.likes--;
-      likedPosts.delete(post.id);
-      setLikes(postToUpdate.likes);
+  useEffect(() => {
+    if (!post.id || !currentUser?.id) return;
+    const likesRef = collection(db, "posts", post.id, "likes");
+    const q = query(likesRef, where("userId", "==", currentUser.id));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+        if (!snapshot.empty) {
+            setIsLiked(true);
+            setLikeDocId(snapshot.docs[0].id);
+        } else {
+            setIsLiked(false);
+            setLikeDocId(null);
+        }
+    });
+
+    return () => unsubscribe();
+  }, [post.id, currentUser?.id]);
+
+
+  const handleLike = async () => {
+    if (!currentUser || !post.id) return;
+
+    const postRef = doc(db, "posts", post.id);
+    const likesRef = collection(db, "posts", post.id, "likes");
+
+    if (isLiked && likeDocId) {
+        // Unlike
+        await deleteDoc(doc(likesRef, likeDocId));
+        await updateDoc(postRef, { likes: increment(-1) });
+        setLikes(prev => prev - 1);
     } else {
-      postToUpdate.likes++;
-      likedPosts.add(post.id);
-      setLikes(postToUpdate.likes);
-       if (currentUser && currentUser.id !== author.id) {
-        // Prevent duplicate like notifications
-        const notificationExists = notifications.some(n => n.type === 'like' && n.fromUserId === currentUser.id && n.postId === post.id);
-        if (!notificationExists) {
-            notifications.unshift({
+        // Like
+        await addDoc(likesRef, { userId: currentUser.id });
+        await updateDoc(postRef, { likes: increment(1) });
+        setLikes(prev => prev + 1);
+
+       if (currentUser.id !== author.id) {
+          const notificationsRef = collection(db, "notifications");
+          const q = query(notificationsRef, 
+            where('type', '==', 'like'),
+            where('fromUserId', '==', currentUser.id),
+            where('postId', '==', post.id)
+          );
+          const existingNotifs = await getDocs(q);
+
+          if (existingNotifs.empty) {
+             await addDoc(notificationsRef, {
                 id: `notif-${Date.now()}`,
                 type: 'like',
                 fromUserId: currentUser.id,
                 toUserId: author.id,
                 postId: post.id,
-                timestamp: new Date().toISOString(),
+                timestamp: new Date(),
                 read: false,
             });
-        }
+          }
       }
     }
-    setIsLiked(!isLiked);
   };
 
   return (

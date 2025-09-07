@@ -2,9 +2,9 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { notifications as initialNotifications, users, posts, followUser as followUserAction } from "@/lib/data"
+import { users, followUser as followUserAction } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
-import { User, Notification as NotificationType, Post } from "@/lib/types"
+import { User, Notification as NotificationType } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Bell, ThumbsUp, UserPlus, Check, ArrowLeft } from "lucide-react"
@@ -13,47 +13,70 @@ import { formatDistanceToNow } from 'date-fns'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
+import { collection, query, where, onSnapshot, doc, getDocs, updateDoc, orderBy } from 'firebase/firestore'
+import { db } from "@/lib/firebase"
+
 
 export default function NotificationsPage() {
   const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [notifications, setNotifications] = useState<NotificationType[]>(initialNotifications);
+  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [posts, setPosts] = useState<any[]>([]);
+  const [followingIds, setFollowingIds] = useState<string[]>([]);
 
   useEffect(() => {
     const user = getLoggedInUser();
     setCurrentUser(user);
 
-    const interval = setInterval(() => {
-        setNotifications([...initialNotifications]);
-    }, 1000);
-    return () => clearInterval(interval);
+    if (user) {
+        // Fetch posts to show context in 'like' notifications
+        const postUnsubscribe = onSnapshot(collection(db, "posts"), (snapshot) => {
+            const postData: any[] = [];
+            snapshot.forEach(doc => postData.push({ id: doc.id, ...doc.data() }));
+            setPosts(postData);
+        });
+
+        // Listen for notifications for the current user
+        const q = query(
+            collection(db, "notifications"), 
+            where("toUserId", "==", user.id),
+            orderBy("timestamp", "desc")
+        );
+        const notifUnsubscribe = onSnapshot(q, (snapshot) => {
+            const notifs: NotificationType[] = [];
+            snapshot.forEach(doc => {
+                notifs.push({ id: doc.id, ...doc.data() } as NotificationType);
+            });
+            setNotifications(notifs);
+        });
+        
+         // Listen to who the current user is following
+        const followingQuery = query(collection(db, "notifications"), where("type", "==", "follow"), where("fromUserId", "==", user.id));
+        const followingUnsubscribe = onSnapshot(followingQuery, (snapshot) => {
+            const ids = snapshot.docs.map(doc => doc.data().toUserId);
+            setFollowingIds(ids);
+        });
+
+        return () => {
+            postUnsubscribe();
+            notifUnsubscribe();
+            followingUnsubscribe();
+        };
+    }
   }, []);
 
-  const userNotifications = currentUser 
-    ? notifications
-        .filter(n => n.toUserId === currentUser.id)
-        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-    : [];
-
-  const markAsRead = (notificationId: string) => {
-    setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
-    const notification = initialNotifications.find(n => n.id === notificationId);
-    if(notification) {
-        notification.read = true;
-    }
+  const markAsRead = async (notificationId: string) => {
+    const notifRef = doc(db, "notifications", notificationId);
+    await updateDoc(notifRef, { read: true });
   };
 
   const handleFollowBack = (followerId: string) => {
     if (!currentUser) return;
     followUserAction(currentUser.id, followerId);
-    // Force a re-render to update the button state
-    setNotifications([...initialNotifications]);
   };
   
   const isFollowing = (userId: string) => {
-    if (!currentUser) return false;
-    // Check the authoritative source
-    return initialNotifications.some(n => n.type === 'follow' && n.fromUserId === currentUser.id && n.toUserId === userId);
+    return followingIds.includes(userId);
   };
 
 
@@ -69,7 +92,7 @@ export default function NotificationsPage() {
       return (
         <p>
           <Link href={`/profile/${fromUser.id}`} className="font-semibold hover:underline">{fromUser.name}</Link>
-          {' '} liked {post ? <Link href="#" className="font-semibold hover:underline">{postContent}</Link> : 'your post'}.
+          {' '} liked {post ? <Link href={`/feed`} className="font-semibold hover:underline">{postContent}</Link> : 'your post'}.
         </p>
       )
     }
@@ -117,12 +140,13 @@ export default function NotificationsPage() {
       
       <Card>
         <CardContent className="p-0">
-          {userNotifications.length > 0 ? (
+          {notifications.length > 0 ? (
             <ul className="divide-y">
-                {userNotifications.map(notification => {
+                {notifications.map(notification => {
                     const fromUser = users.find(u => u.id === notification.fromUserId);
                     if (!fromUser) return null;
                     const alreadyFollowing = isFollowing(fromUser.id);
+                    const timeAgo = notification.timestamp?.toDate ? formatDistanceToNow(notification.timestamp.toDate(), { addSuffix: true }) : 'just now';
 
                     return (
                       <li 
@@ -147,7 +171,7 @@ export default function NotificationsPage() {
                                 </div>
                             </div>
                            <p className="text-xs text-muted-foreground mt-1 pl-10">
-                                {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
+                                {timeAgo}
                             </p>
                         </div>
                         <div className="flex items-center gap-2">

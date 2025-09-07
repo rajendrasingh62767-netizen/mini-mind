@@ -1,9 +1,8 @@
 
 "use client"
-import { useState, useReducer } from "react"
+import { useState, useReducer, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getLoggedInUser } from "@/lib/auth"
-import { posts as initialPosts } from "@/lib/data"
 import { Post, User } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,6 +11,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { PlusSquare, Loader2, Image as ImageIcon, Video, ArrowLeft } from "lucide-react"
 import Image from "next/image"
+import { addDoc, collection, serverTimestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -21,16 +23,15 @@ export default function CreatePostPage() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
   const [isLoading, setIsLoading] = useState(false)
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0)
 
-  useState(() => {
+  useEffect(() => {
     const user = getLoggedInUser();
     if (user) {
       setCurrentUser(user);
     } else {
       router.push('/login');
     }
-  })
+  }, [router]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -54,26 +55,33 @@ export default function CreatePostPage() {
 
     let mediaUrl: string | undefined = undefined;
     if (mediaFile) {
-        // In a real app, you would upload this file to a cloud storage service like Firebase Storage
-        // and get back a URL. For this example, we'll use the local object URL.
-        mediaUrl = mediaPreview!;
+      try {
+        const storage = getStorage();
+        const storageRef = ref(storage, `posts/${currentUser.id}/${Date.now()}-${mediaFile.name}`);
+        const snapshot = await uploadBytes(storageRef, mediaFile);
+        mediaUrl = await getDownloadURL(snapshot.ref);
+      } catch (error) {
+          console.error("Error uploading media:", error);
+          setIsLoading(false);
+          return;
+      }
     }
     
-    const newPost: Post = {
-      id: `post-${Date.now()}`,
-      authorId: currentUser.id,
-      content: content,
-      timestamp: new Date().toISOString(),
-      likes: 0,
-      comments: 0,
-      mediaUrl: mediaUrl,
-      mediaType: mediaType || undefined,
+    try {
+        await addDoc(collection(db, "posts"), {
+            authorId: currentUser.id,
+            content: content,
+            timestamp: serverTimestamp(),
+            likes: 0,
+            comments: 0,
+            mediaUrl: mediaUrl,
+            mediaType: mediaType || null,
+        });
+    } catch (error) {
+        console.error("Error creating post:", error);
+        setIsLoading(false);
+        return;
     }
-
-    // Simulate API delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    initialPosts.unshift(newPost);
     
     setIsLoading(false);
     router.push(`/feed`);
