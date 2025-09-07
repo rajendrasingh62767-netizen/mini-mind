@@ -1,8 +1,8 @@
 "use client"
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { users, currentUser } from '@/lib/data';
+import { users, getCurrentUser } from '@/lib/data';
 import { User } from '@/lib/types';
 import UserCard from './user-card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,11 @@ import { Search } from 'lucide-react';
 export default function SearchUsers() {
   const [searchTerm, setSearchTerm] = useState('');
   const [submittedSearch, setSubmittedSearch] = useState('');
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setSearchTerm(event.target.value);
@@ -20,6 +25,10 @@ export default function SearchUsers() {
     event.preventDefault();
     setSubmittedSearch(searchTerm);
   };
+  
+  if (!currentUser) {
+    return <p>Loading...</p>
+  }
   
   const filteredUsers = users.filter(user => {
       if (submittedSearch.trim() === '') return user.id !== currentUser.id;

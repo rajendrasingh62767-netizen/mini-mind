@@ -1,34 +1,55 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, currentUser as initialCurrentUser } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getCurrentUser } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil } from "lucide-react"
-import { notFound } from "next/navigation"
+import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
+import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
+  const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
-  const [currentUser, setCurrentUser] = useState(initialCurrentUser);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  
+  useEffect(() => {
+    const loggedInUser = getLoggedInUser();
+    if (!loggedInUser) {
+        router.push('/login');
+    } else {
+        setCurrentUser(loggedInUser)
+    }
+  }, [router]);
   
   const user = users.find((u) => u.id === params.userId)
 
   if (!user) {
-    notFound();
+    return notFound();
   }
 
   const userPosts = initialPosts.filter((post) => post.authorId === user.id)
-  const isCurrentUser = user.id === currentUser.id;
+  const isCurrentUser = currentUser ? user.id === currentUser.id : false;
 
   const handleProfileUpdate = (updatedUser: User) => {
-    setUsers(currentUsers => currentUsers.map(u => u.id === updatedUser.id ? updatedUser : u));
-    if (updatedUser.id === currentUser.id) {
+    // In a real app, this would be an API call to update the user in the database.
+    const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
+    setUsers(updatedUsers);
+    
+    // If the updated user is the current user, also update the data in localStorage
+    if (isCurrentUser) {
         setCurrentUser(updatedUser);
+        saveUserToLocalStorage(updatedUser);
     }
   }
+  
+  if (!currentUser) {
+    return <p>Loading profile...</p>
+  }
+
 
   return (
     <div className="space-y-6">

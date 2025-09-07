@@ -13,14 +13,35 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FcGoogle } from "react-icons/fc";
+import { users } from "@/lib/data"
+import { useState } from "react"
+import { saveUserToLocalStorage } from "@/lib/auth"
+import { useToast } from "@/hooks/use-toast"
 
 export default function LoginPage() {
   const router = useRouter()
+  const [error, setError] = useState("");
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-    // In a real app, you'd have validation and an API call here.
-    router.push("/feed")
+    setError("");
+
+    const formData = new FormData(e.currentTarget);
+    const email = formData.get("email") as string;
+    
+    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+
+    if (user) {
+      saveUserToLocalStorage(user);
+      toast({
+        title: "Login Successful",
+        description: `Welcome back, ${user.name}!`,
+      });
+      router.push("/feed")
+    } else {
+        setError("Invalid email or password.");
+    }
   }
 
   return (
@@ -51,6 +72,7 @@ export default function LoginPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="m@example.com"
               required
@@ -58,8 +80,9 @@ export default function LoginPage() {
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" required />
+            <Input id="password" name="password" type="password" required />
           </div>
+           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button type="submit" className="w-full">
             Login
           </Button>

@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
-import { conversations, users, currentUser } from "@/lib/data"
-import { Conversation as ConversationType } from "@/lib/types"
+import { useState, useEffect } from "react"
+import { conversations, users, getCurrentUser } from "@/lib/data"
+import { Conversation as ConversationType, User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Card, CardContent } from "@/components/ui/card"
+import { Card } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import ChatInterface from "./components/chat-interface"
@@ -13,6 +13,13 @@ import { format } from 'date-fns'
 
 export default function MessagesPage() {
   const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(conversations[0] || null)
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getCurrentUser());
+  }, []);
+
+  if (!currentUser) return <p>Loading...</p>
 
   const getParticipant = (convo: ConversationType) => {
     const participantId = convo.participantIds.find(id => id !== currentUser.id)
@@ -61,7 +68,7 @@ export default function MessagesPage() {
       </div>
       <div className="w-2/3 h-full">
         {selectedConversation ? (
-          <ChatInterface conversation={selectedConversation} />
+          <ChatInterface conversation={selectedConversation} currentUser={currentUser} />
         ) : (
           <div className="flex items-center justify-center h-full text-muted-foreground">
             <p>Select a conversation to start chatting.</p>

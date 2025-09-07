@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react"
 import { Conversation as ConversationType, User, Message } from "@/lib/types"
-import { currentUser, users } from "@/lib/data"
+import { users } from "@/lib/data"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -13,10 +13,11 @@ import { format } from 'date-fns'
 import { getAiResponse } from "../actions"
 
 interface ChatInterfaceProps {
-  conversation: ConversationType
+  conversation: ConversationType,
+  currentUser: User
 }
 
-export default function ChatInterface({ conversation: initialConversation }: ChatInterfaceProps) {
+export default function ChatInterface({ conversation: initialConversation, currentUser }: ChatInterfaceProps) {
   const [conversation, setConversation] = useState(initialConversation);
   const [messages, setMessages] = useState<Message[]>(conversation.messages);
   const [newMessage, setNewMessage] = useState("");

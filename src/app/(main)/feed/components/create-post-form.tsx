@@ -5,13 +5,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Textarea } from "@/components/ui/textarea"
-import { currentUser } from "@/lib/data"
+import type { User } from "@/lib/types";
 
 interface CreatePostFormProps {
   onNewPost: (content: string) => void;
+  currentUser: User;
 }
 
-export default function CreatePostForm({ onNewPost }: CreatePostFormProps) {
+export default function CreatePostForm({ onNewPost, currentUser }: CreatePostFormProps) {
   const [content, setContent] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {

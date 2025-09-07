@@ -1,6 +1,7 @@
 import { User, Post, Conversation } from '@/lib/types';
+import { getLoggedInUser } from './auth';
 
-export const users: User[] = [
+export let users: User[] = [
   {
     id: 'user-1',
     name: 'Alex Johnson',
@@ -97,4 +98,17 @@ export const conversations: Conversation[] = [
   },
 ];
 
-export const currentUser = users[0];
+// This is now a function that can dynamically get the user
+// It will default to the first user if not logged in, which is useful for development
+// but in a real app, you'd enforce a login.
+export function getCurrentUser(): User {
+  if (typeof window !== 'undefined') {
+    const loggedInUser = getLoggedInUser();
+    if (loggedInUser) {
+        // Ensure the user from local storage exists in our "database"
+        const fullUser = users.find(u => u.id === loggedInUser.id);
+        if(fullUser) return fullUser;
+    }
+  }
+  return users[0];
+};

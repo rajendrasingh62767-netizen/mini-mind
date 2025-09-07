@@ -1,8 +1,10 @@
 import AnalyzerForm from "./components/analyzer-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
+import { getCurrentUser } from "@/lib/data";
 
 export default function AnalyzerPage() {
+  const currentUser = getCurrentUser();
   return (
     <div className="space-y-6">
       <Card>
@@ -18,7 +20,7 @@ export default function AnalyzerPage() {
           </div>
         </CardHeader>
       </Card>
-      <AnalyzerForm />
+      <AnalyzerForm currentUser={currentUser} />
     </div>
   )
 }

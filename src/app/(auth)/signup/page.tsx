@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label"
 import { FcGoogle } from "react-icons/fc";
 import { useState } from "react"
 import { users } from "@/lib/data"
+import { saveUserToLocalStorage } from "@/lib/auth"
+import type { User } from "@/lib/types"
 
 
 export default function SignupPage() {
@@ -30,6 +32,7 @@ export default function SignupPage() {
     const formData = new FormData(e.currentTarget);
     const username = formData.get("username") as string;
     const email = formData.get("email") as string;
+    const name = formData.get("full-name") as string;
     
     const isUsernameTaken = users.some(user => user.username.toLowerCase() === username.toLowerCase());
     if (isUsernameTaken) {
@@ -43,7 +46,19 @@ export default function SignupPage() {
         return;
     }
 
-    // In a real app, you'd have validation and an API call here.
+    // In a real app, this would be saved to a database
+    const newUser: User = {
+      id: `user-${Date.now()}`,
+      name,
+      username,
+      email,
+      description: "A new Mini Mind user.",
+      avatarUrl: `https://picsum.photos/seed/${username}/100/100`,
+    };
+    
+    users.push(newUser); // Add to our mock data
+    saveUserToLocalStorage(newUser);
+
     router.push("/feed")
   }
 

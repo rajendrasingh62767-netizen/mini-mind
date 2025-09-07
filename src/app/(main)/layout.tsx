@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/sidebar"
 import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { currentUser } from "@/lib/data"
+import { getCurrentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -32,6 +32,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation"
+import { clearUserFromLocalStorage, getLoggedInUser } from "@/lib/auth"
 
 export default function MainLayout({
   children,
@@ -39,6 +40,29 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   const router = useRouter();
+  const [currentUser, setCurrentUser] = React.useState(getCurrentUser());
+
+  React.useEffect(() => {
+    const user = getLoggedInUser();
+    if (!user) {
+      router.push('/login');
+    } else {
+        setCurrentUser(user);
+    }
+  }, [router]);
+
+  const handleLogout = () => {
+    clearUserFromLocalStorage();
+    router.push('/login');
+  }
+
+  if (!currentUser) {
+    return (
+        <div className="flex min-h-screen items-center justify-center">
+            <p>Loading...</p>
+        </div>
+    )
+  }
 
   return (
     <SidebarProvider>
@@ -156,7 +180,7 @@ export default function MainLayout({
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={() => router.push('/login')}>
+              <AlertDialogAction onClick={handleLogout}>
                 Log Out
               </AlertDialogAction>
             </AlertDialogFooter>

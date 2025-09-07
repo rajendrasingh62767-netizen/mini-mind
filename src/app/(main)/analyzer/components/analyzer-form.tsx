@@ -10,10 +10,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { currentUser } from '@/lib/data'
+import { User } from '@/lib/types'
 import { ProfileImprovementOutput } from '@/ai/flows/profile-improvement-suggestions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { Loader2, AlertCircle, Lightbulb, User, FileText } from 'lucide-react'
+import { Loader2, AlertCircle, Lightbulb, User as UserIcon, FileText } from 'lucide-react'
 
 const formSchema = z.object({
   profilePhoto: z.any().refine(fileList => fileList.length === 1, 'Profile photo is required.'),
@@ -24,7 +24,11 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-export default function AnalyzerForm() {
+interface AnalyzerFormProps {
+    currentUser: User;
+}
+
+export default function AnalyzerForm({ currentUser }: AnalyzerFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [suggestions, setSuggestions] = useState<ProfileImprovementOutput | null>(null)
@@ -131,7 +135,7 @@ export default function AnalyzerForm() {
             <h2 className="text-2xl font-bold font-headline">Your Suggestions</h2>
           <Card>
             <CardHeader>
-                <CardTitle className="flex items-center gap-2"><User /> Photo Suggestions</CardTitle>
+                <CardTitle className="flex items-center gap-2"><UserIcon /> Photo Suggestions</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-muted-foreground">{suggestions.photoSuggestions}</p>
@@ -140,7 +144,7 @@ export default function AnalyzerForm() {
           <Card>
              <CardHeader>
                 <CardTitle className="flex items-center gap-2"><FileText /> Description Suggestions</CardTitle>
-            </CardHeader>
+            </Header>
             <CardContent>
                <p className="text-muted-foreground">{suggestions.descriptionSuggestions}</p>
             </CardContent>
