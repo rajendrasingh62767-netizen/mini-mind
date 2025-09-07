@@ -96,7 +96,7 @@ export default function MessagesPage() {
 
     return () => unsubscribe();
 
-  }, [currentUser]);
+  }, [currentUser, searchParams]);
 
   useEffect(() => {
     const conversationId = searchParams.get('conversationId');
@@ -105,6 +105,8 @@ export default function MessagesPage() {
       if(convoToSelect){
           setSelectedConversation(convoToSelect);
       }
+    } else {
+        setSelectedConversation(null);
     }
   }, [searchParams, conversations]);
 
@@ -186,13 +188,15 @@ export default function MessagesPage() {
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
      </div>
   );
+  
+  const hasSelectedConversation = !!selectedConversation;
 
   return (
     <Card className="h-[calc(100vh-8rem)] w-full flex overflow-hidden">
        <div
         className={cn(
           "w-full md:w-1/3 border-r h-full flex-col flex",
-          selectedConversation && "hidden md:flex"
+          hasSelectedConversation && "hidden md:flex"
         )}
       >
         <div className="p-4 border-b">
@@ -274,9 +278,9 @@ export default function MessagesPage() {
       </div>
       <div className={cn(
           "w-full md:w-2/3 h-full flex-col",
-          !selectedConversation ? "hidden md:flex" : "flex"
+          !hasSelectedConversation ? "hidden md:flex" : "flex"
         )}>
-        {selectedConversation && currentUser ? (
+        {hasSelectedConversation && currentUser && selectedConversation ? (
           <ChatInterface key={selectedConversation.id} conversation={selectedConversation} currentUser={currentUser} />
         ) : (
           <div className="items-center justify-center h-full text-muted-foreground hidden md:flex">
