@@ -133,19 +133,26 @@ export default function MessagesPage() {
 
         if (!querySnapshot.empty) {
             const convoDoc = querySnapshot.docs[0];
-            handleSelectConversation({ id: convoDoc.id, participantIds: convoDoc.data().participantIds, messages: [] });
+            const existingConvo = { id: convoDoc.id, participantIds: convoDoc.data().participantIds, messages: [] };
+             if(!conversations.some(c => c.id === existingConvo.id)) {
+                setConversations(prev => [existingConvo, ...prev]);
+            }
+            handleSelectConversation(existingConvo);
         } else {
             const newConversationRef = await addDoc(collection(db, "conversations"), {
                 participantIds: sortedParticipantIds,
                 createdAt: serverTimestamp(),
                 lastMessage: null
             });
-            handleSelectConversation({ id: newConversationRef.id, participantIds: sortedParticipantIds, messages: [] });
+            const newConvo = { id: newConversationRef.id, participantIds: sortedParticipantIds, messages: [] };
+            setConversations(prev => [newConvo, ...prev]);
+            handleSelectConversation(newConvo);
         }
     } catch(error) {
         console.error("Error selecting or creating conversation:", error);
     } finally {
         setIsCreatingConversation(false);
+        setSearchTerm("");
     }
   }
   
@@ -237,7 +244,7 @@ export default function MessagesPage() {
            {filteredUsers.map((user) => (
               <div
                 key={user.id}
-                className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50"
+                className={cn("flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50", isCreatingConversation && "opacity-50 cursor-not-allowed")}
                 onClick={() => handleSelectUser(user)}
                 aria-disabled={isCreatingConversation}
               >
