@@ -10,7 +10,11 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Send, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { format } from 'date-fns'
-import { getAiResponse } from "../actions"
+import { db } from "@/lib/firebase"
+import { collection, addDoc, serverTimestamp, onSnapshot, query, orderBy, doc, writeBatch } from "firebase/firestore"
+import { ArrowLeft } from "lucide-react"
+import Link from "next/link"
+
 
 interface ChatInterfaceProps {
   conversation: ConversationType,
@@ -18,22 +22,44 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ conversation: initialConversation, currentUser }: ChatInterfaceProps) {
-  const [conversation, setConversation] = useState(initialConversation);
-  const [messages, setMessages] = useState<Message[]>(conversation.messages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [participant, setParticipant] = useState<User | null>(null);
 
-  const participantId = conversation.participantIds.find(id => id !== currentUser.id)
-  const participant = users.find(user => user.id === participantId)
-  
-  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const viewportRef = useRef<HTMLDivElement>(null);
 
+  useEffect(() => {
+    const participantId = initialConversation.participantIds.find(id => id !== currentUser.id)
+    if (participantId) {
+        const foundParticipant = users.find(user => user.id === participantId)
+        setParticipant(foundParticipant || null);
+    }
+  }, [initialConversation, currentUser.id]);
 
   useEffect(() => {
-    setConversation(initialConversation);
-    setMessages(initialConversation.messages);
-  }, [initialConversation]);
+    if (!initialConversation.id) return;
+    
+    setIsLoading(true);
+    const q = query(collection(db, "conversations", initialConversation.id, "messages"), orderBy("timestamp", "asc"));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const msgs: Message[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        msgs.push({
+          id: doc.id,
+          senderId: data.senderId,
+          text: data.text,
+          timestamp: data.timestamp?.toDate() || new Date()
+        });
+      });
+      setMessages(msgs);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [initialConversation.id]);
 
   useEffect(() => {
     if (viewportRef.current) {
@@ -43,71 +69,73 @@ export default function ChatInterface({ conversation: initialConversation, curre
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMessage.trim() || isLoading || !participant) return;
+    if (!newMessage.trim() || !participant) return;
 
-    const userMessage: Message = {
-      id: `msg-${Date.now()}`,
-      senderId: currentUser.id,
-      text: newMessage,
-      timestamp: new Date().toISOString(),
-    };
-
-    const newMessages = [...messages, userMessage];
-    setMessages(newMessages);
+    const text = newMessage;
     setNewMessage("");
-    setIsLoading(true);
 
-    const result = await getAiResponse({
-      history: messages,
-      newMessage: newMessage,
-      currentUser: currentUser,
-      participant: participant,
-    });
+    const messagesColRef = collection(db, "conversations", initialConversation.id, "messages");
+    const conversationDocRef = doc(db, "conversations", initialConversation.id);
 
-    if (result.success && participant) {
-        const aiMessage: Message = {
-            id: `msg-${Date.now() + 1}`,
-            senderId: participant.id,
-            text: result.data,
-            timestamp: new Date().toISOString(),
-        };
-        setMessages(prev => [...prev, aiMessage]);
-    } else {
-        // Handle error - maybe show a toast or an error message in chat
-        console.error("Failed to get AI response:", result.error);
-        const errorMessage: Message = {
-            id: `err-${Date.now()}`,
-            senderId: 'system',
-            text: `Error: ${result.error || 'Could not get response.'}`,
-            timestamp: new Date().toISOString(),
-        }
-        setMessages(prev => [...prev, errorMessage]);
+    try {
+        const batch = writeBatch(db);
+
+        // Add new message
+        batch.set(doc(messagesColRef), {
+            senderId: currentUser.id,
+            text: text,
+            timestamp: serverTimestamp(),
+        });
+
+        // Update last message on conversation
+        batch.update(conversationDocRef, {
+            lastMessage: {
+                senderId: currentUser.id,
+                text: text,
+                timestamp: serverTimestamp(),
+            }
+        });
+
+        await batch.commit();
+
+    } catch (error) {
+        console.error("Error sending message:", error);
     }
-
-    setIsLoading(false);
   };
 
-  if (!participant) return null;
+  if (isLoading) {
+    return (
+        <div className="flex items-center justify-center h-full">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+    )
+  }
+
+  if (!participant) {
+    return (
+        <div className="flex items-center justify-center h-full text-muted-foreground">
+            <p>Could not load participant details.</p>
+        </div>
+    )
+  };
 
   return (
     <div className="flex flex-col h-full">
       <header className="p-4 border-b flex items-center gap-3">
+         <Link href="/messages" className="md:hidden mr-2">
+            <Button variant="ghost" size="icon">
+                <ArrowLeft />
+            </Button>
+        </Link>
         <Avatar>
           <AvatarImage src={participant.avatarUrl} alt={participant.name} />
           <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
         </Avatar>
         <h2 className="font-semibold text-lg">{participant.name}</h2>
       </header>
-      <ScrollArea className="flex-1 p-4" ref={scrollAreaRef}>
-        <div className="space-y-4" ref={viewportRef}>
+      <ScrollArea className="flex-1 bg-muted/20">
+        <div className="p-4 space-y-4" ref={viewportRef}>
           {messages.map((message) => {
-            if (message.senderId === 'system') {
-                 return (
-                    <div key={message.id} className="text-center text-xs text-destructive">
-                        <p>{message.text}</p>
-                    </div>
-                )
-            }
             const sender = message.senderId === currentUser.id ? currentUser : participant
             const isCurrentUser = message.senderId === currentUser.id
             return (
@@ -126,14 +154,14 @@ export default function ChatInterface({ conversation: initialConversation, curre
                 )}
                 <div
                   className={cn(
-                    "rounded-lg px-4 py-2 max-w-xs lg:max-w-md",
+                    "rounded-lg px-4 py-2 max-w-xs lg:max-w-md shadow-sm",
                     isCurrentUser
                       ? "bg-primary text-primary-foreground"
-                      : "bg-muted"
+                      : "bg-background"
                   )}
                 >
                   <p className="text-sm">{message.text}</p>
-                   <p className={cn("text-xs mt-1", isCurrentUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
+                   <p className={cn("text-xs mt-1 text-right", isCurrentUser ? "text-primary-foreground/70" : "text-muted-foreground")}>
                       {format(new Date(message.timestamp), 'p')}
                     </p>
                 </div>
@@ -146,30 +174,18 @@ export default function ChatInterface({ conversation: initialConversation, curre
               </div>
             )
           })}
-           {isLoading && (
-            <div className="flex items-end gap-2 justify-start">
-              <Avatar className="w-8 h-8">
-                <AvatarImage src={participant.avatarUrl} alt={participant.name} />
-                <AvatarFallback>{participant.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="rounded-lg px-4 py-2 bg-muted flex items-center">
-                  <Loader2 className="w-5 h-5 animate-spin text-muted-foreground" />
-              </div>
-            </div>
-          )}
         </div>
       </ScrollArea>
-      <footer className="p-4 border-t">
+      <footer className="p-4 border-t bg-background">
         <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <Input
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             placeholder="Type a message..."
             className="flex-1"
-            disabled={isLoading}
           />
-          <Button type="submit" size="icon" disabled={isLoading || !newMessage.trim()}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> :<Send className="h-4 w-4" />}
+          <Button type="submit" size="icon" disabled={!newMessage.trim()}>
+            <Send className="h-4 w-4" />
             <span className="sr-only">Send message</span>
           </Button>
         </form>

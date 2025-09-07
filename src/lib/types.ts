@@ -20,13 +20,14 @@ export interface Message {
   id: string;
   senderId: string;
   text: string;
-  timestamp: string;
+  timestamp: any; // Allow for Firestore ServerTimestamp
 }
 
 export interface Conversation {
   id: string;
   participantIds: string[];
   messages: Message[];
+  lastMessage?: Message;
 }
 
 export interface Notification {
