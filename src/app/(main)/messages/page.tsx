@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -13,6 +14,8 @@ import ChatInterface from "./components/chat-interface"
 import { cn } from "@/lib/utils"
 import { format } from 'date-fns'
 import { useRouter } from "next/navigation"
+import { Button } from "@/components/ui/button"
+import { ArrowLeft } from "lucide-react"
 
 export default function MessagesPage() {
   const router = useRouter();
@@ -101,7 +104,13 @@ export default function MessagesPage() {
     <Card className="h-[calc(100vh-8rem)] w-full flex">
       <div className="w-1/3 border-r h-full flex flex-col">
         <div className="p-4 border-b">
-          <h1 className="text-2xl font-bold tracking-tight font-headline">Messages</h1>
+          <div className="flex items-center justify-between">
+            <h1 className="text-2xl font-bold tracking-tight font-headline">Messages</h1>
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
+              <ArrowLeft className="h-5 w-5" />
+              <span className="sr-only">Back</span>
+            </Button>
+          </div>
           <Input 
             placeholder="Search by name, username, or ID..." 
             className="mt-2" 
