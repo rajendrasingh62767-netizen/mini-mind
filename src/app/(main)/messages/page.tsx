@@ -17,6 +17,7 @@ export default function MessagesPage() {
   const [conversations, setConversations] = useState(initialConversations)
   const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
   
   useEffect(() => {
     setCurrentUser(getCurrentUser());
@@ -42,15 +43,26 @@ export default function MessagesPage() {
     return users.find(user => user.id === participantId)
   }
 
+  const filteredConversations = conversations.filter(convo => {
+    const participant = getParticipant(convo);
+    if (!participant) return false;
+    return participant.name.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
   return (
     <Card className="h-[calc(100vh-8rem)] w-full flex">
       <div className="w-1/3 border-r h-full flex flex-col">
         <div className="p-4 border-b">
           <h1 className="text-2xl font-bold tracking-tight font-headline">Messages</h1>
-          <Input placeholder="Search messages..." className="mt-2" />
+          <Input 
+            placeholder="Search messages..." 
+            className="mt-2" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
         <ScrollArea className="flex-1">
-          {conversations.map((convo) => {
+          {filteredConversations.map((convo) => {
             const participant = getParticipant(convo)
             if (!participant) return null
             const lastMessage = convo.messages[convo.messages.length - 1];
