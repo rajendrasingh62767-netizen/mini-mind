@@ -138,44 +138,45 @@ export default function MainLayout({
             </SidebarFooter>
           </Sidebar>
           <SidebarInset className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-              <header className="md:hidden mb-4">
+              <header className="mb-4">
                   <div className="flex justify-between items-center">
-                      <ConnectNowLogo />
-                      <SidebarTrigger />
+                      <div className="flex items-center gap-4">
+                        <SidebarTrigger className="md:hidden"/>
+                        <ConnectNowLogo />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Link href="/search">
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Search"
+                            >
+                            <Search className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                        <Link href="/messages">
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Messages"
+                            >
+                            <MessageCircle className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                         <Link href={`/profile/${currentUser.id}`}>
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Profile"
+                            >
+                            <User className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                      </div>
                   </div>
               </header>
               <main>{children}</main>
           </SidebarInset>
-          <div className="fixed bottom-6 right-6 flex flex-col-reverse sm:flex-row gap-4">
-              <Link href={`/profile/${currentUser.id}`}>
-                <Button
-                  className="w-16 h-16 rounded-full shadow-lg"
-                  size="icon"
-                  aria-label="Profile"
-                >
-                  <User className="h-8 w-8" />
-                </Button>
-              </Link>
-              <Link href="/search">
-                <Button
-                  variant="destructive"
-                  className="w-16 h-16 rounded-full shadow-lg"
-                  size="icon"
-                  aria-label="Search"
-                >
-                  <Search className="h-8 w-8" />
-                </Button>
-              </Link>
-              <Link href="/messages">
-                <Button
-                  className="w-16 h-16 rounded-full shadow-lg"
-                  size="icon"
-                  aria-label="Messages"
-                >
-                  <MessageCircle className="h-8 w-8" />
-                </Button>
-              </Link>
-          </div>
         </div>
         <AlertDialogContent>
             <AlertDialogHeader>
