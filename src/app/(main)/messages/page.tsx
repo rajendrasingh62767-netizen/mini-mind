@@ -43,7 +43,7 @@ export default function MessagesPage() {
     }
   }, [router]);
 
- useEffect(() => {
+  useEffect(() => {
     if (!currentUser) return;
 
     if (conversationsCache.current.length > 0) {

@@ -157,7 +157,7 @@ export default function ChatInterface({ conversation: initialConversation, curre
                     "rounded-lg px-4 py-2 max-w-xs lg:max-w-md shadow-sm",
                     isCurrentUser
                       ? "bg-primary text-primary-foreground"
-                      : "bg-background"
+                      : "bg-card border"
                   )}
                 >
                   <p className="text-sm">{message.text}</p>
@@ -165,12 +165,6 @@ export default function ChatInterface({ conversation: initialConversation, curre
                       {format(new Date(message.timestamp), 'p')}
                     </p>
                 </div>
-                 {isCurrentUser && (
-                  <Avatar className="w-8 h-8">
-                    <AvatarImage src={sender.avatarUrl} alt={sender.name} />
-                    <AvatarFallback>{sender.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                )}
               </div>
             )
           })}
