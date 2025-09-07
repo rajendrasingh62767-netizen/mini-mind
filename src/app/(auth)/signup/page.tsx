@@ -20,19 +20,27 @@ import { users } from "@/lib/data"
 export default function SignupPage() {
   const router = useRouter()
   const [usernameError, setUsernameError] = useState("");
+  const [emailError, setEmailError] = useState("");
 
   const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setUsernameError("");
+    setEmailError("");
 
     const formData = new FormData(e.currentTarget);
     const username = formData.get("username") as string;
+    const email = formData.get("email") as string;
     
     const isUsernameTaken = users.some(user => user.username.toLowerCase() === username.toLowerCase());
-
     if (isUsernameTaken) {
       setUsernameError("This username is already taken. Please choose another one.");
       return;
+    }
+
+    const isEmailTaken = users.some(user => user.email.toLowerCase() === email.toLowerCase());
+    if (isEmailTaken) {
+        setEmailError("This email is already registered. Please login.");
+        return;
     }
 
     // In a real app, you'd have validation and an API call here.
@@ -76,10 +84,12 @@ export default function SignupPage() {
             <Label htmlFor="email">Email</Label>
             <Input
               id="email"
+              name="email"
               type="email"
               placeholder="m@example.com"
               required
             />
+            {emailError && <p className="text-sm text-destructive">{emailError}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="password">Password</Label>
