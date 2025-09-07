@@ -1,7 +1,7 @@
 
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSearchParams } from 'next/navigation'
 import { users as initialUsers } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
@@ -30,6 +30,8 @@ export default function MessagesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
+  
+  const conversationsCache = useRef<ConversationType[]>([]);
 
   useEffect(() => {
     setAllUsers(initialUsers); 
@@ -44,7 +46,13 @@ export default function MessagesPage() {
  useEffect(() => {
     if (!currentUser) return;
 
-    setIsLoading(true);
+    if (conversationsCache.current.length > 0) {
+        setConversations(conversationsCache.current);
+        setIsLoading(false);
+    } else {
+        setIsLoading(true);
+    }
+
     const q = query(
       collection(db, "conversations"), 
       where("participantIds", "array-contains", currentUser.id),
@@ -69,6 +77,7 @@ export default function MessagesPage() {
       }
 
       setConversations(convos);
+      conversationsCache.current = convos;
       
       const conversationId = searchParams.get('conversationId');
       if (conversationId) {
@@ -87,7 +96,17 @@ export default function MessagesPage() {
 
     return () => unsubscribe();
 
-  }, [currentUser, searchParams]);
+  }, [currentUser]);
+
+  useEffect(() => {
+    const conversationId = searchParams.get('conversationId');
+    if (conversationId) {
+      const convoToSelect = conversations.find(c => c.id === conversationId);
+      if(convoToSelect){
+          setSelectedConversation(convoToSelect);
+      }
+    }
+  }, [searchParams, conversations]);
 
   const getParticipant = useCallback((convo: ConversationType) => {
     if (!currentUser) return null;
@@ -147,6 +166,7 @@ export default function MessagesPage() {
   const filteredConversations = conversations.filter(convo => {
     const participant = getParticipant(convo);
     if (!participant) return false;
+    if (searchTerm.trim() === '') return true;
     const lowercasedSearch = searchTerm.toLowerCase();
     return (
         participant.name.toLowerCase().includes(lowercasedSearch) ||
@@ -154,7 +174,7 @@ export default function MessagesPage() {
     );
   });
   
-  if (!currentUser || isLoading) return (
+  if (isLoading && conversationsCache.current.length === 0) return (
      <div className="flex items-center justify-center h-[calc(100vh-8rem)] w-full">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
      </div>
@@ -207,7 +227,7 @@ export default function MessagesPage() {
                     </p>}
                   </div>
                   <p className="text-sm text-muted-foreground truncate">
-                    {lastMessage ? (lastMessage.senderId === currentUser.id ? `You: ${lastMessage.text}`: lastMessage.text) : 'No messages yet'}
+                    {lastMessage ? (lastMessage.senderId === currentUser?.id ? `You: ${lastMessage.text}`: lastMessage.text) : 'No messages yet'}
                   </p>
                 </div>
               </div>
@@ -237,6 +257,11 @@ export default function MessagesPage() {
                     No users or conversations found.
                 </div>
             )}
+             {filteredConversations.length === 0 && searchTerm.trim() === '' && !isLoading && (
+                 <div className="text-center text-sm text-muted-foreground p-8">
+                    You have no conversations.
+                </div>
+            )}
 
         </ScrollArea>
       </div>
@@ -244,7 +269,7 @@ export default function MessagesPage() {
           "w-full md:w-2/3 h-full flex-col",
           !selectedConversation ? "hidden md:flex" : "flex"
         )}>
-        {selectedConversation ? (
+        {selectedConversation && currentUser ? (
           <ChatInterface key={selectedConversation.id} conversation={selectedConversation} currentUser={currentUser} />
         ) : (
           <div className="items-center justify-center h-full text-muted-foreground hidden md:flex">
