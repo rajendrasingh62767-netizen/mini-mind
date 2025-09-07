@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { notifications as initialNotifications, users, posts } from "@/lib/data"
+import { notifications as initialNotifications, users, posts, followUser as followUserAction } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
 import { User, Notification as NotificationType, Post } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -20,6 +20,11 @@ export default function NotificationsPage() {
   useEffect(() => {
     const user = getLoggedInUser();
     setCurrentUser(user);
+
+    const interval = setInterval(() => {
+        setNotifications([...initialNotifications]);
+    }, 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const userNotifications = currentUser 
@@ -30,29 +35,21 @@ export default function NotificationsPage() {
 
   const markAsRead = (notificationId: string) => {
     setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
-    // In a real app, you'd also update this on the server
+    const notification = initialNotifications.find(n => n.id === notificationId);
+    if(notification) {
+        notification.read = true;
+    }
   };
 
   const handleFollowBack = (followerId: string) => {
     if (!currentUser) return;
-    
-    // Create a new notification for the follow action
-    const newFollowNotification: NotificationType = {
-      id: `notif-${Date.now()}`,
-      type: 'follow',
-      fromUserId: currentUser.id,
-      toUserId: followerId,
-      timestamp: new Date().toISOString(),
-      read: false, // This would be relevant for the other user
-    };
-
-    // Add the new notification to the global state
-    setNotifications(prev => [newFollowNotification, ...prev]);
+    followUserAction(currentUser.id, followerId);
+    setNotifications([...initialNotifications]);
   };
   
   const isFollowing = (userId: string) => {
     if (!currentUser) return false;
-    return notifications.some(n => n.type === 'follow' && n.fromUserId === currentUser.id && n.toUserId === userId);
+    return initialNotifications.some(n => n.type === 'follow' && n.fromUserId === currentUser.id && n.toUserId === userId);
   };
 
 
