@@ -18,6 +18,13 @@ export interface Post {
   mediaType?: 'image' | 'video';
 }
 
+export interface Comment {
+  id: string;
+  authorId: string;
+  text: string;
+  timestamp: any; // Allow for Firestore ServerTimestamp
+}
+
 export interface Message {
   id: string;
   senderId: string;
