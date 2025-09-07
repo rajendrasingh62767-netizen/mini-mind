@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect } from "react"
@@ -9,7 +10,7 @@ import { ThumbsUp, MessageSquare, Share2 } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
 import { cn } from "@/lib/utils"
-import { notifications } from "@/lib/data"
+import { notifications, posts as allPosts } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
 import Image from "next/image"
 
@@ -19,10 +20,13 @@ interface PostCardProps {
   author: User
 }
 
+// In a real app, this would be stored per-user in a database
+const likedPosts = new Set<string>();
+
 export default function PostCard({ post, author }: PostCardProps) {
   const timeAgo = formatDistanceToNow(new Date(post.timestamp), { addSuffix: true });
   const [likes, setLikes] = useState(post.likes);
-  const [isLiked, setIsLiked] = useState(false);
+  const [isLiked, setIsLiked] = useState(likedPosts.has(post.id));
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -30,20 +34,31 @@ export default function PostCard({ post, author }: PostCardProps) {
   }, []);
 
   const handleLike = () => {
+    const postToUpdate = allPosts.find(p => p.id === post.id);
+    if (!postToUpdate) return;
+
     if (isLiked) {
-      setLikes(likes - 1);
+      postToUpdate.likes--;
+      likedPosts.delete(post.id);
+      setLikes(postToUpdate.likes);
     } else {
-      setLikes(likes + 1);
+      postToUpdate.likes++;
+      likedPosts.add(post.id);
+      setLikes(postToUpdate.likes);
        if (currentUser && currentUser.id !== author.id) {
-        notifications.unshift({
-          id: `notif-${Date.now()}`,
-          type: 'like',
-          fromUserId: currentUser.id,
-          toUserId: author.id,
-          postId: post.id,
-          timestamp: new Date().toISOString(),
-          read: false,
-        });
+        // Prevent duplicate like notifications
+        const notificationExists = notifications.some(n => n.type === 'like' && n.fromUserId === currentUser.id && n.postId === post.id);
+        if (!notificationExists) {
+            notifications.unshift({
+                id: `notif-${Date.now()}`,
+                type: 'like',
+                fromUserId: currentUser.id,
+                toUserId: author.id,
+                postId: post.id,
+                timestamp: new Date().toISOString(),
+                read: false,
+            });
+        }
       }
     }
     setIsLiked(!isLiked);
