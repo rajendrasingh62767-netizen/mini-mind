@@ -3,13 +3,14 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getCurrentUser, conversations, notifications } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, conversations, notifications, getFollowers, getFollowing } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil, MessageSquare, UserPlus, Check } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
 import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
+import FollowersListDialog from "./components/followers-list-dialog"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();
@@ -47,6 +48,10 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
   const userPosts = initialPosts.filter((post) => post.authorId === user.id)
   const isCurrentUser = currentUser ? user.id === currentUser.id : false;
+
+  const followers = getFollowers(user.id);
+  const following = getFollowing(user.id);
+
 
   const handleProfileUpdate = (updatedUser: User) => {
     // In a real app, this would be an API call to update the user in the database.
@@ -147,6 +152,20 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                 )}
               </div>
               <p className="text-muted-foreground">{user.email}</p>
+              
+               <div className="flex items-center gap-4 pt-2 text-sm">
+                <FollowersListDialog title="Following" users={following}>
+                  <button type="button" className="hover:underline">
+                    <span className="font-bold">{following.length}</span> Following
+                  </button>
+                </FollowersListDialog>
+                <FollowersListDialog title="Followers" users={followers}>
+                  <button type="button" className="hover:underline">
+                    <span className="font-bold">{followers.length}</span> Followers
+                  </button>
+                </FollowersListDialog>
+              </div>
+
               <p className="text-muted-foreground pt-2">{user.description}</p>
             </div>
           </div>

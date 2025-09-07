@@ -141,6 +141,14 @@ export let notifications: Notification[] = [
         timestamp: '2024-05-21T09:30:00Z',
         read: false,
     },
+     {
+        id: 'notif-4',
+        type: 'follow',
+        fromUserId: 'user-2',
+        toUserId: 'user-1',
+        timestamp: '2024-05-21T10:00:00Z',
+        read: false,
+    },
 ];
 
 // This is now a function that can dynamically get the user
@@ -157,3 +165,17 @@ export function getCurrentUser(): User {
   }
   return users[0];
 };
+
+export function getFollowers(userId: string): User[] {
+    const followerIds = notifications
+        .filter(n => n.type === 'follow' && n.toUserId === userId)
+        .map(n => n.fromUserId);
+    return users.filter(u => followerIds.includes(u.id));
+}
+
+export function getFollowing(userId: string): User[] {
+    const followingIds = notifications
+        .filter(n => n.type === 'follow' && n.fromUserId === userId)
+        .map(n => n.toUserId);
+    return users.filter(u => followingIds.includes(u.id));
+}
