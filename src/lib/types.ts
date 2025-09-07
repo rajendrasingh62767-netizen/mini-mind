@@ -31,7 +31,7 @@ export interface Conversation {
 
 export interface Notification {
     id: string;
-    type: 'like' | 'connection';
+    type: 'like' | 'follow';
     fromUserId: string;
     toUserId: string;
     postId?: string; // only for 'like' type

@@ -15,7 +15,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   
   useEffect(() => {
     const loggedInUser = getLoggedInUser();
@@ -31,13 +31,12 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   useEffect(() => {
     if (currentUser && user) {
         // In a real app, you'd check a connections list from an API
-        // For this demo, we'll check if a "connection" notification exists
-        const connectionExists = notifications.some(
-            n => n.type === 'connection' &&
-            ((n.fromUserId === currentUser.id && n.toUserId === user.id) || 
-             (n.fromUserId === user.id && n.toUserId === currentUser.id))
+        // For this demo, we'll check if a "follow" notification exists
+        const followExists = notifications.some(
+            n => n.type === 'follow' &&
+            n.fromUserId === currentUser.id && n.toUserId === user.id
         );
-        setIsConnected(connectionExists);
+        setIsFollowing(followExists);
     }
   }, [currentUser, user]);
 
@@ -83,13 +82,13 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     router.push(`/messages?conversationId=${conversation.id}`);
   }
 
-  const handleConnect = () => {
-    if (isConnected || !currentUser) return;
+  const handleFollow = () => {
+    if (isFollowing || !currentUser) return;
 
-    setIsConnected(true)
+    setIsFollowing(true)
     notifications.unshift({
       id: `notif-${Date.now()}`,
-      type: 'connection',
+      type: 'follow',
       fromUserId: currentUser.id,
       toUserId: user.id,
       timestamp: new Date().toISOString(),
@@ -136,9 +135,9 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                   </EditProfileDialog>
                 ) : (
                     <div className="flex gap-2">
-                        <Button onClick={handleConnect} disabled={isConnected}>
-                            {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isConnected ? "Connected" : "Connect"}
+                        <Button onClick={handleFollow} disabled={isFollowing}>
+                            {isFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isFollowing ? "Following" : "Follow"}
                         </Button>
                         <Button variant="outline" onClick={handleMessage}>
                             <MessageSquare className="mr-2 h-4 w-4" />

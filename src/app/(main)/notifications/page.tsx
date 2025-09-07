@@ -48,11 +48,11 @@ export default function NotificationsPage() {
       )
     }
 
-    if (notification.type === 'connection') {
+    if (notification.type === 'follow') {
       return (
         <p>
           <Link href={`/profile/${fromUser.id}`} className="font-semibold hover:underline">{fromUser.name}</Link>
-          {' '} wants to connect with you.
+          {' '} started following you.
         </p>
       )
     }
@@ -63,7 +63,7 @@ export default function NotificationsPage() {
     if (notification.type === 'like') {
         return <ThumbsUp className="w-6 h-6 text-blue-500" />
     }
-     if (notification.type === 'connection') {
+     if (notification.type === 'follow') {
         return <UserPlus className="w-6 h-6 text-green-500" />
     }
     return <Bell className="w-6 h-6" />
@@ -130,7 +130,7 @@ export default function NotificationsPage() {
              <div className="p-10 text-center text-muted-foreground">
                 <Bell className="mx-auto w-12 h-12 mb-4" />
                 <p>You have no notifications yet.</p>
-                <p className="text-sm">When you get likes or connection requests, they will show up here.</p>
+                <p className="text-sm">When you get likes or new followers, they will show up here.</p>
             </div>
           )}
         </CardContent>

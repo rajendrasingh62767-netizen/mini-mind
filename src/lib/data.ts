@@ -126,7 +126,7 @@ export let notifications: Notification[] = [
     },
     {
         id: 'notif-2',
-        type: 'connection',
+        type: 'follow',
         fromUserId: 'user-4',
         toUserId: 'user-1',
         timestamp: '2024-05-20T14:05:00Z',

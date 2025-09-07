@@ -14,7 +14,7 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user }: UserCardProps) {
-  const [isConnected, setIsConnected] = useState(false);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
@@ -22,25 +22,24 @@ export default function UserCard({ user }: UserCardProps) {
       setCurrentUser(Cuser);
        if (Cuser) {
         // In a real app, you'd check a connections list from an API
-        // For this demo, we'll check if a "connection" notification exists
-        const connectionExists = notifications.some(
-            n => n.type === 'connection' &&
-            ((n.fromUserId === Cuser.id && n.toUserId === user.id) || 
-             (n.fromUserId === user.id && n.toUserId === Cuser.id))
+        // For this demo, we'll check if a "follow" notification exists
+        const followExists = notifications.some(
+            n => n.type === 'follow' &&
+            n.fromUserId === Cuser.id && n.toUserId === user.id
         );
-        setIsConnected(connectionExists);
+        setIsFollowing(followExists);
     }
   }, [user.id])
 
 
-  const handleConnect = (e: React.MouseEvent) => {
+  const handleFollow = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation when clicking the button
-    if (isConnected || !currentUser) return;
+    if (isFollowing || !currentUser) return;
 
-    setIsConnected(true);
+    setIsFollowing(true);
     notifications.unshift({
       id: `notif-${Date.now()}`,
-      type: 'connection',
+      type: 'follow',
       fromUserId: currentUser.id,
       toUserId: user.id,
       timestamp: new Date().toISOString(),
@@ -69,11 +68,11 @@ export default function UserCard({ user }: UserCardProps) {
       <CardFooter className="p-4 pt-0">
         <Button 
             className="w-full" 
-            onClick={handleConnect}
-            disabled={isConnected}
+            onClick={handleFollow}
+            disabled={isFollowing}
         >
-          {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-          {isConnected ? 'Connected' : 'Connect'}
+          {isFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+          {isFollowing ? 'Following' : 'Follow'}
         </Button>
       </CardFooter>
     </Card>
