@@ -1,3 +1,7 @@
+
+"use client"
+
+import * as React from "react"
 import {
   SidebarProvider,
   Sidebar,
@@ -17,108 +21,140 @@ import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import ProfileWidget from "@/components/profile/ProfileWidget"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { useRouter } from "next/navigation"
 
 export default function MainLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const router = useRouter();
+
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen">
-        <Sidebar className="border-r">
-          <SidebarHeader>
-            <ConnectNowLogo />
-          </SidebarHeader>
-          <SidebarContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/feed" isActive>
-                  <Home />
-                  Feed
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/messages">
-                  <MessageCircle />
-                  Messages
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/search">
-                  <Search />
-                  Search
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton href="/analyzer">
-                  <Sparkles />
-                  Profile Analyzer
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarContent>
-          <SidebarFooter className="flex-col items-start gap-4">
-             <div className="w-full border-t border-border pt-4 flex flex-col gap-2">
-                 <SidebarMenu>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton href="#">
-                            <Settings />
-                            Settings
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                    <SidebarMenuItem>
-                        <SidebarMenuButton href="/login">
-                            <LogOut />
-                            Logout
-                        </SidebarMenuButton>
-                    </SidebarMenuItem>
-                </SidebarMenu>
-             </div>
-            <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-3 w-full">
-              <Avatar>
-                <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
-                <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col overflow-hidden">
-                <span className="font-semibold text-sm truncate">{currentUser.name}</span>
-                <span className="text-muted-foreground text-xs truncate">{currentUser.email}</span>
-              </div>
-            </Link>
-          </SidebarFooter>
-        </Sidebar>
-        <SidebarInset className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
-            <header className="md:hidden mb-4">
-                <div className="flex justify-between items-center">
-                    <ConnectNowLogo />
-                    <SidebarTrigger />
+      <AlertDialog>
+        <div className="flex min-h-screen">
+          <Sidebar className="border-r">
+            <SidebarHeader>
+              <ConnectNowLogo />
+            </SidebarHeader>
+            <SidebarContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/feed" isActive>
+                    <Home />
+                    Feed
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/messages">
+                    <MessageCircle />
+                    Messages
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/search">
+                    <Search />
+                    Search
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/analyzer">
+                    <Sparkles />
+                    Profile Analyzer
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarContent>
+            <SidebarFooter className="flex-col items-start gap-4">
+               <div className="w-full border-t border-border pt-4 flex flex-col gap-2">
+                   <SidebarMenu>
+                      <SidebarMenuItem>
+                          <SidebarMenuButton href="#">
+                              <Settings />
+                              Settings
+                          </SidebarMenuButton>
+                      </SidebarMenuItem>
+                      <SidebarMenuItem>
+                        <AlertDialogTrigger asChild>
+                           <SidebarMenuButton>
+                                <LogOut />
+                                Logout
+                           </SidebarMenuButton>
+                        </AlertDialogTrigger>
+                      </SidebarMenuItem>
+                  </SidebarMenu>
+               </div>
+              <Link href={`/profile/${currentUser.id}`} className="flex items-center gap-3 w-full">
+                <Avatar>
+                  <AvatarImage src={currentUser.avatarUrl} alt={currentUser.name} />
+                  <AvatarFallback>{currentUser.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="font-semibold text-sm truncate">{currentUser.name}</span>
+                  <span className="text-muted-foreground text-xs truncate">{currentUser.email}</span>
                 </div>
-            </header>
-            <main>{children}</main>
-        </SidebarInset>
-        <div className="fixed bottom-6 right-6 flex flex-col-reverse sm:flex-row gap-4">
-            <ProfileWidget />
-            <Link href="/search">
-              <Button
-                variant="destructive"
-                className="w-16 h-16 rounded-full shadow-lg"
-                size="icon"
-                aria-label="Search"
-              >
-                <Search className="h-8 w-8" />
-              </Button>
-            </Link>
-            <Link href="/messages">
-              <Button
-                className="w-16 h-16 rounded-full shadow-lg"
-                size="icon"
-                aria-label="Messages"
-              >
-                <MessageCircle className="h-8 w-8" />
-              </Button>
-            </Link>
+              </Link>
+            </SidebarFooter>
+          </Sidebar>
+          <SidebarInset className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+              <header className="md:hidden mb-4">
+                  <div className="flex justify-between items-center">
+                      <ConnectNowLogo />
+                      <SidebarTrigger />
+                  </div>
+              </header>
+              <main>{children}</main>
+          </SidebarInset>
+          <div className="fixed bottom-6 right-6 flex flex-col-reverse sm:flex-row gap-4">
+              <ProfileWidget />
+              <Link href="/search">
+                <Button
+                  variant="destructive"
+                  className="w-16 h-16 rounded-full shadow-lg"
+                  size="icon"
+                  aria-label="Search"
+                >
+                  <Search className="h-8 w-8" />
+                </Button>
+              </Link>
+              <Link href="/messages">
+                <Button
+                  className="w-16 h-16 rounded-full shadow-lg"
+                  size="icon"
+                  aria-label="Messages"
+                >
+                  <MessageCircle className="h-8 w-8" />
+                </Button>
+              </Link>
+          </div>
         </div>
-      </div>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure you want to log out?</AlertDialogTitle>
+              <AlertDialogDescription>
+                You will be returned to the login page.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={() => router.push('/login')}>
+                Log Out
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+      </AlertDialog>
     </SidebarProvider>
   )
 }
