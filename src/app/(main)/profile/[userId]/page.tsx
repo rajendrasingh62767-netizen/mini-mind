@@ -242,7 +242,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4">
                   {userPosts.filter(p => p.mediaUrl && p.mediaType === 'image').map((post) => (
                       <div key={post.id} className="relative aspect-square">
-                        <Image src={post.mediaUrl!} alt={post.content} fill className="object-cover rounded-md" />
+                        <Image src={post.mediaUrl!} alt={post.content ?? 'Post image'} fill className="object-cover rounded-md" />
                       </div>
                   ))}
                 </div>

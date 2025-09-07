@@ -7,13 +7,15 @@ import { getLoggedInUser } from "@/lib/auth"
 import { User, Notification as NotificationType, Post } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Bell, ThumbsUp, UserPlus, Check } from "lucide-react"
+import { Bell, ThumbsUp, UserPlus, Check, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { useRouter } from "next/navigation"
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<NotificationType[]>(initialNotifications);
 
@@ -44,11 +46,13 @@ export default function NotificationsPage() {
   const handleFollowBack = (followerId: string) => {
     if (!currentUser) return;
     followUserAction(currentUser.id, followerId);
+    // Force a re-render to update the button state
     setNotifications([...initialNotifications]);
   };
   
   const isFollowing = (userId: string) => {
     if (!currentUser) return false;
+    // Check the authoritative source
     return initialNotifications.some(n => n.type === 'follow' && n.fromUserId === currentUser.id && n.toUserId === userId);
   };
 
@@ -95,6 +99,10 @@ export default function NotificationsPage() {
     <div className="space-y-6">
        <Card>
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+             <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
+                <ArrowLeft className="h-6 w-6" />
+                <span className="sr-only">Back</span>
+            </Button>
             <div className="p-3 rounded-full bg-primary/10 text-primary">
                 <Bell className="w-6 h-6" />
             </div>
@@ -176,5 +184,3 @@ export default function NotificationsPage() {
     </div>
   )
 }
-
-    

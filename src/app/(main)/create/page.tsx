@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PlusSquare, Loader2, Image as ImageIcon, Video } from "lucide-react"
+import { PlusSquare, Loader2, Image as ImageIcon, Video, ArrowLeft } from "lucide-react"
 import Image from "next/image"
 
 export default function CreatePostPage() {
@@ -87,6 +87,10 @@ export default function CreatePostPage() {
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
+              <ArrowLeft className="h-6 w-6" />
+              <span className="sr-only">Back</span>
+          </Button>
           <div className="p-3 rounded-full bg-primary/10 text-primary">
             <PlusSquare className="w-6 h-6" />
           </div>
