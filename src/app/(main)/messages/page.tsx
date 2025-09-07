@@ -1,7 +1,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { conversations, users, getCurrentUser } from "@/lib/data"
+import { useSearchParams } from 'next/navigation'
+import { conversations as initialConversations, users, getCurrentUser } from "@/lib/data"
 import { Conversation as ConversationType, User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
@@ -12,12 +13,27 @@ import { cn } from "@/lib/utils"
 import { format } from 'date-fns'
 
 export default function MessagesPage() {
-  const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(conversations[0] || null)
+  const searchParams = useSearchParams();
+  const [conversations, setConversations] = useState(initialConversations)
+  const [selectedConversation, setSelectedConversation] = useState<ConversationType | null>(null)
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-
+  
   useEffect(() => {
     setCurrentUser(getCurrentUser());
   }, []);
+
+  useEffect(() => {
+    if (currentUser) {
+        const conversationId = searchParams.get('conversationId');
+        if (conversationId) {
+            const convo = conversations.find(c => c.id === conversationId);
+            setSelectedConversation(convo || conversations[0] || null);
+        } else {
+            setSelectedConversation(conversations[0] || null);
+        }
+    }
+  }, [searchParams, currentUser, conversations]);
+
 
   if (!currentUser) return <p>Loading...</p>
 
@@ -55,11 +71,13 @@ export default function MessagesPage() {
                 <div className="flex-1 overflow-hidden">
                   <div className="flex justify-between items-center">
                     <p className="font-semibold truncate">{participant.name}</p>
-                     <p className="text-xs text-muted-foreground truncate">
+                     {lastMessage && <p className="text-xs text-muted-foreground truncate">
                         {format(new Date(lastMessage.timestamp), 'p')}
-                    </p>
+                    </p>}
                   </div>
-                  <p className="text-sm text-muted-foreground truncate">{lastMessage.text}</p>
+                  <p className="text-sm text-muted-foreground truncate">
+                    {lastMessage ? lastMessage.text : 'No messages yet'}
+                  </p>
                 </div>
               </div>
             )

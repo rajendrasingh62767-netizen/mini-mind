@@ -3,9 +3,9 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getCurrentUser } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getCurrentUser, conversations } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
-import { Pencil } from "lucide-react"
+import { Pencil, MessageSquare, UserPlus, Check } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
@@ -15,6 +15,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
   
   useEffect(() => {
     const loggedInUser = getLoggedInUser();
@@ -45,6 +46,28 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         saveUserToLocalStorage(updatedUser);
     }
   }
+
+  const handleMessage = () => {
+    if (!currentUser) return;
+    
+    // Check if a conversation already exists
+    let conversation = conversations.find(c => 
+        c.participantIds.includes(currentUser.id) && c.participantIds.includes(user.id)
+    );
+
+    if (!conversation) {
+        // Create a new conversation if one doesn't exist
+        conversation = {
+            id: `conv-${Date.now()}`,
+            participantIds: [currentUser.id, user.id],
+            messages: []
+        };
+        conversations.unshift(conversation); // Add to the beginning of the list
+    }
+    
+    // Redirect to the messages page, with the new/existing conversation selected
+    router.push(`/messages?conversationId=${conversation.id}`);
+  }
   
   if (!currentUser) {
     return <p>Loading profile...</p>
@@ -71,18 +94,29 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
             </div>
 
             <div className="space-y-2 flex-1">
-              <div className="flex justify-between items-start">
+              <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
                 <div>
                     <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
                     <p className="text-muted-foreground text-lg">@{user.username}</p>
                 </div>
-                {isCurrentUser && (
+                {isCurrentUser ? (
                    <EditProfileDialog user={user} onProfileUpdate={handleProfileUpdate}>
-                    <Button variant="outline" size="icon">
-                      <Pencil className="h-4 w-4" />
-                      <span className="sr-only">Edit Profile</span>
+                    <Button variant="outline">
+                      <Pencil className="h-4 w-4 mr-2" />
+                      Edit Profile
                     </Button>
                   </EditProfileDialog>
+                ) : (
+                    <div className="flex gap-2">
+                        <Button onClick={() => setIsConnected(!isConnected)}>
+                            {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                            {isConnected ? "Connected" : "Connect"}
+                        </Button>
+                        <Button variant="outline" onClick={handleMessage}>
+                            <MessageSquare className="mr-2 h-4 w-4" />
+                            Message
+                        </Button>
+                    </div>
                 )}
               </div>
               <p className="text-muted-foreground">{user.email}</p>

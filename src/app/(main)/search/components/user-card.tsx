@@ -1,8 +1,11 @@
+"use client";
+
+import { useState } from 'react';
 import { User } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { UserPlus } from 'lucide-react';
+import { UserPlus, Check } from 'lucide-react';
 import Link from 'next/link';
 
 interface UserCardProps {
@@ -10,6 +13,13 @@ interface UserCardProps {
 }
 
 export default function UserCard({ user }: UserCardProps) {
+  const [isConnected, setIsConnected] = useState(false);
+
+  const handleConnect = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent link navigation when clicking the button
+    setIsConnected(!isConnected);
+  }
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center text-center p-4">
@@ -29,9 +39,13 @@ export default function UserCard({ user }: UserCardProps) {
         <p className="line-clamp-3">{user.description}</p>
       </CardContent>
       <CardFooter className="p-4 pt-0">
-        <Button className="w-full">
-          <UserPlus className="mr-2 h-4 w-4" />
-          Connect
+        <Button 
+            className="w-full" 
+            onClick={handleConnect}
+            disabled={isConnected}
+        >
+          {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+          {isConnected ? 'Connected' : 'Connect'}
         </Button>
       </CardFooter>
     </Card>
