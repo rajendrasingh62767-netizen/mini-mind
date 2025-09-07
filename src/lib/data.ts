@@ -1,4 +1,4 @@
-import { User, Post, Conversation } from '@/lib/types';
+import { User, Post, Conversation, Notification } from '@/lib/types';
 import { getLoggedInUser } from './auth';
 
 export let users: User[] = [
@@ -52,7 +52,7 @@ export let users: User[] = [
   },
 ];
 
-export const posts: Post[] = [
+export let posts: Post[] = [
   {
     id: 'post-1',
     authorId: 'user-2',
@@ -87,7 +87,7 @@ export const posts: Post[] = [
   },
 ];
 
-export const conversations: Conversation[] = [
+export let conversations: Conversation[] = [
     {
     id: 'conv-1',
     participantIds: ['user-1', 'user-2'],
@@ -112,6 +112,35 @@ export const conversations: Conversation[] = [
       { id: 'msg-6', senderId: 'user-4', text: 'Hi Alex, saw your profile and thought we could connect. I\'m always looking to network with tech leaders.', timestamp: '2024-05-20T14:00:00Z' },
     ],
   },
+];
+
+export let notifications: Notification[] = [
+    {
+        id: 'notif-1',
+        type: 'like',
+        fromUserId: 'user-3',
+        toUserId: 'user-1',
+        postId: 'post-2',
+        timestamp: '2024-05-20T12:00:00Z',
+        read: false,
+    },
+    {
+        id: 'notif-2',
+        type: 'connection',
+        fromUserId: 'user-4',
+        toUserId: 'user-1',
+        timestamp: '2024-05-20T14:05:00Z',
+        read: true,
+    },
+     {
+        id: 'notif-3',
+        type: 'like',
+        fromUserId: 'user-1',
+        toUserId: 'user-2',
+        postId: 'post-1',
+        timestamp: '2024-05-21T09:30:00Z',
+        read: false,
+    },
 ];
 
 // This is now a function that can dynamically get the user

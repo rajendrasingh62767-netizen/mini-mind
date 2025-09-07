@@ -28,3 +28,13 @@ export interface Conversation {
   participantIds: string[];
   messages: Message[];
 }
+
+export interface Notification {
+    id: string;
+    type: 'like' | 'connection';
+    fromUserId: string;
+    toUserId: string;
+    postId?: string; // only for 'like' type
+    timestamp: string;
+    read: boolean;
+}

@@ -9,6 +9,9 @@ import { ThumbsUp, MessageSquare, Share2 } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { notifications } from "@/lib/data"
+import { getCurrentUser } from "@/lib/data"
+
 
 interface PostCardProps {
   post: Post
@@ -19,12 +22,24 @@ export default function PostCard({ post, author }: PostCardProps) {
   const timeAgo = formatDistanceToNow(new Date(post.timestamp), { addSuffix: true });
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
+  const currentUser = getCurrentUser();
 
   const handleLike = () => {
     if (isLiked) {
       setLikes(likes - 1);
     } else {
       setLikes(likes + 1);
+       if (currentUser && currentUser.id !== author.id) {
+        notifications.unshift({
+          id: `notif-${Date.now()}`,
+          type: 'like',
+          fromUserId: currentUser.id,
+          toUserId: author.id,
+          postId: post.id,
+          timestamp: new Date().toISOString(),
+          read: false,
+        });
+      }
     }
     setIsLiked(!isLiked);
   };

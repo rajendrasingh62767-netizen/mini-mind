@@ -7,6 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Check } from 'lucide-react';
 import Link from 'next/link';
+import { notifications, getCurrentUser } from '@/lib/data';
 
 interface UserCardProps {
   user: User;
@@ -14,10 +15,21 @@ interface UserCardProps {
 
 export default function UserCard({ user }: UserCardProps) {
   const [isConnected, setIsConnected] = useState(false);
+  const currentUser = getCurrentUser();
 
   const handleConnect = (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent link navigation when clicking the button
     setIsConnected(!isConnected);
+    if (!isConnected && currentUser) {
+       notifications.unshift({
+        id: `notif-${Date.now()}`,
+        type: 'connection',
+        fromUserId: currentUser.id,
+        toUserId: user.id,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+    }
   }
 
   return (
@@ -42,7 +54,6 @@ export default function UserCard({ user }: UserCardProps) {
         <Button 
             className="w-full" 
             onClick={handleConnect}
-            disabled={isConnected}
         >
           {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
           {isConnected ? 'Connected' : 'Connect'}

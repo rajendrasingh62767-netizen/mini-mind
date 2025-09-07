@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getCurrentUser, conversations } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getCurrentUser, conversations, notifications } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil, MessageSquare, UserPlus, Check } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
@@ -68,6 +68,20 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     // Redirect to the messages page, with the new/existing conversation selected
     router.push(`/messages?conversationId=${conversation.id}`);
   }
+
+  const handleConnect = () => {
+    setIsConnected(!isConnected)
+    if (!isConnected && currentUser) {
+      notifications.unshift({
+        id: `notif-${Date.now()}`,
+        type: 'connection',
+        fromUserId: currentUser.id,
+        toUserId: user.id,
+        timestamp: new Date().toISOString(),
+        read: false,
+      });
+    }
+  }
   
   if (!currentUser) {
     return <p>Loading profile...</p>
@@ -108,7 +122,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                   </EditProfileDialog>
                 ) : (
                     <div className="flex gap-2">
-                        <Button onClick={() => setIsConnected(!isConnected)}>
+                        <Button onClick={handleConnect}>
                             {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isConnected ? "Connected" : "Connect"}
                         </Button>
