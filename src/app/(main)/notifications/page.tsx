@@ -99,7 +99,7 @@ export default function NotificationsPage() {
     <div className="space-y-6">
        <Card>
         <CardHeader className="flex flex-row items-center gap-4 space-y-0">
-             <Button variant="ghost" size="icon" onClick={() => router.back()} className="md:hidden">
+             <Button variant="ghost" size="icon" onClick={() => router.push('/feed')} className="md:hidden">
                 <ArrowLeft className="h-6 w-6" />
                 <span className="sr-only">Back</span>
             </Button>

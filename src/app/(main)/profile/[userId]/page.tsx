@@ -142,7 +142,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
             <div className="space-y-2 flex-1">
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
                 <div className="flex items-center gap-4">
-                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="sm:hidden">
+                     <Button variant="ghost" size="icon" onClick={() => router.push('/feed')} className="sm:hidden">
                         <ArrowLeft className="h-5 w-5" />
                         <span className="sr-only">Back</span>
                     </Button>
@@ -183,8 +183,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                             </Button>
                         </div>
                     )}
-                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden sm:inline-flex">
-                        <ArrowLeft className="h-5 w-5" />
+                     <Button variant="ghost" size="icon" onClick={() => router.push('/feed')} className="hidden sm:inline-flex">
+                        <ArrowLeft className="h-5 w.5" />
                         <span className="sr-only">Back</span>
                     </Button>
                 </div>
