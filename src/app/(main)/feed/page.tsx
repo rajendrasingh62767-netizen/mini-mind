@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -13,6 +14,9 @@ export default function FeedPage() {
 
   useEffect(() => {
     setCurrentUser(getLoggedInUser());
+    // This will refresh the posts from the "global" array when the component mounts
+    // or when the data could have changed.
+    setPosts([...initialPosts]);
   }, []);
 
 
@@ -27,6 +31,9 @@ export default function FeedPage() {
       likes: 0,
       comments: 0,
     };
+    // Add to the "global" array so it's reflected everywhere
+    initialPosts.unshift(newPost);
+    // Update the local state to trigger a re-render
     setPosts([newPost, ...posts]);
   };
 

@@ -76,7 +76,7 @@ export default function CreatePostPage() {
     initialPosts.unshift(newPost);
     
     setIsLoading(false);
-    router.push(`/profile/${currentUser.id}`);
+    router.push(`/feed`);
   }
 
   if (!currentUser) {
