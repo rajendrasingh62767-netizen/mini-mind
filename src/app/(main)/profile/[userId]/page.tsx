@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { users as initialUsers, posts as initialPosts, conversations, notifications, getFollowers, getFollowing } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
-import { Pencil, MessageSquare, UserPlus, Check } from "lucide-react"
+import { Pencil, MessageSquare, UserPlus, Check, ArrowLeft } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
@@ -127,29 +127,41 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
             <div className="space-y-2 flex-1">
               <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
-                <div>
-                    <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
-                    <p className="text-muted-foreground text-lg">@{user.username}</p>
-                </div>
-                {isCurrentUser ? (
-                   <EditProfileDialog user={user} onProfileUpdate={handleProfileUpdate}>
-                    <Button variant="outline">
-                      <Pencil className="h-4 w-4 mr-2" />
-                      Edit Profile
+                <div className="flex items-center gap-4">
+                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="sm:hidden">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back</span>
                     </Button>
-                  </EditProfileDialog>
-                ) : (
-                    <div className="flex gap-2">
-                        <Button onClick={handleFollow} disabled={isFollowing}>
-                            {isFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                            {isFollowing ? "Following" : "Follow"}
-                        </Button>
-                        <Button variant="outline" onClick={handleMessage}>
-                            <MessageSquare className="mr-2 h-4 w-4" />
-                            Message
-                        </Button>
+                    <div>
+                        <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
+                        <p className="text-muted-foreground text-lg">@{user.username}</p>
                     </div>
-                )}
+                </div>
+                <div className="flex items-center gap-2">
+                    {isCurrentUser ? (
+                    <EditProfileDialog user={user} onProfileUpdate={handleProfileUpdate}>
+                        <Button variant="outline">
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Edit Profile
+                        </Button>
+                    </EditProfileDialog>
+                    ) : (
+                        <div className="flex gap-2">
+                            <Button onClick={handleFollow} disabled={isFollowing}>
+                                {isFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                                {isFollowing ? "Following" : "Follow"}
+                            </Button>
+                            <Button variant="outline" onClick={handleMessage}>
+                                <MessageSquare className="mr-2 h-4 w-4" />
+                                Message
+                            </Button>
+                        </div>
+                    )}
+                     <Button variant="ghost" size="icon" onClick={() => router.back()} className="hidden sm:inline-flex">
+                        <ArrowLeft className="h-5 w-5" />
+                        <span className="sr-only">Back</span>
+                    </Button>
+                </div>
               </div>
               <p className="text-muted-foreground">{user.email}</p>
               
