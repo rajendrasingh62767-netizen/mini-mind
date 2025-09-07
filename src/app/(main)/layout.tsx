@@ -99,6 +99,16 @@ export default function MainLayout({
         </SidebarInset>
         <div className="fixed bottom-6 right-24 flex gap-4">
             <ProfileWidget />
+            <Link href="/search">
+              <Button
+                variant="destructive"
+                className="w-16 h-16 rounded-full shadow-lg"
+                size="icon"
+                aria-label="Search"
+              >
+                <Search className="h-8 w-8" />
+              </Button>
+            </Link>
         </div>
         <ChatWidget />
       </div>
