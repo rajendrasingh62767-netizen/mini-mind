@@ -1,3 +1,4 @@
+
 "use client"
 
 import { useState, useEffect, useCallback } from "react"
@@ -78,14 +79,17 @@ export default function MessagesPage() {
             setSelectedConversation(convoToSelect);
         }
       } else if (convos.length > 0 && !selectedConversation) {
-        setSelectedConversation(convos[0]);
+        // Don't auto-select on mobile, show the list first
+        if (window.innerWidth >= 768) { 
+           setSelectedConversation(convos[0]);
+        }
       }
 
     });
 
     return () => unsubscribe();
 
-  }, [currentUser, searchParams, selectedConversation]);
+  }, [currentUser, searchParams]);
 
   const getParticipant = useCallback((convo: ConversationType) => {
     if (!currentUser) return null;
@@ -159,8 +163,13 @@ export default function MessagesPage() {
   );
 
   return (
-    <Card className="h-[calc(100vh-8rem)] w-full flex">
-      <div className="w-full md:w-1/3 border-r h-full flex-col md:flex">
+    <Card className="h-[calc(100vh-8rem)] w-full flex overflow-hidden">
+       <div
+        className={cn(
+          "w-full md:w-1/3 border-r h-full flex-col flex",
+          selectedConversation && "hidden md:flex"
+        )}
+      >
         <div className="p-4 border-b">
           <div className="flex items-center justify-between">
             <h1 className="text-2xl font-bold tracking-tight font-headline">Messages</h1>
@@ -233,11 +242,14 @@ export default function MessagesPage() {
 
         </ScrollArea>
       </div>
-      <div className="w-2/3 h-full hidden md:flex flex-col">
+      <div className={cn(
+          "w-full md:w-2/3 h-full flex-col",
+          !selectedConversation ? "hidden md:flex" : "flex"
+        )}>
         {selectedConversation ? (
           <ChatInterface key={selectedConversation.id} conversation={selectedConversation} currentUser={currentUser} />
         ) : (
-          <div className="flex items-center justify-center h-full text-muted-foreground">
+          <div className="items-center justify-center h-full text-muted-foreground hidden md:flex">
             <p>Select a conversation or search for a user to start chatting.</p>
           </div>
         )}
