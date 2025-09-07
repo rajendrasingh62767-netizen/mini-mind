@@ -154,6 +154,15 @@ export default function MainLayout({
                             <Search className="h-6 w-6" />
                             </Button>
                         </Link>
+                        <Link href="/notifications">
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Notifications"
+                            >
+                            <Bell className="h-6 w-6" />
+                            </Button>
+                        </Link>
                         <Link href="/messages">
                             <Button
                             variant="ghost"
