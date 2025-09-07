@@ -11,7 +11,7 @@ import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
 import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
-import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
+import { collection, query, where, getDocs, addDoc, serverTimestamp, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { cn } from "@/lib/utils"
 
@@ -46,7 +46,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         setFollowers(getFollowers(user.id));
         setFollowing(getFollowing(user.id));
     }
-  }, [currentUser, user]);
+  }, [currentUser, user, _]);
 
 
   if (!user) {
@@ -87,6 +87,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         const newConversationRef = await addDoc(collection(db, "conversations"), {
           participantIds: sortedParticipantIds,
           createdAt: serverTimestamp(),
+          lastMessage: null,
         });
         conversationId = newConversationRef.id;
       }
@@ -101,8 +102,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     if (!currentUser || !user) return;
     followUser(currentUser.id, user.id);
     setIsFollowing(true);
-    setFollowers(getFollowers(user.id)); // Refresh followers list
-    setFollowing(getFollowing(currentUser.id));
     forceUpdate();
   }
   
@@ -110,8 +109,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     if (!currentUser || !user) return;
     unfollowUser(currentUser.id, user.id);
     setIsFollowing(false);
-    setFollowers(getFollowers(user.id)); // Refresh followers list
-    setFollowing(getFollowing(currentUser.id));
     forceUpdate();
   }
   
