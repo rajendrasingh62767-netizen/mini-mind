@@ -54,6 +54,26 @@ export let users: User[] = [
 
 export let posts: Post[] = [
   {
+    id: 'post-5',
+    authorId: 'user-1',
+    content: 'Exploring the mountains today! #nature #hiking',
+    timestamp: '2024-05-22T12:00:00Z',
+    likes: 15,
+    comments: 2,
+    mediaUrl: 'https://picsum.photos/id/1015/600/600',
+    mediaType: 'image',
+  },
+   {
+    id: 'post-6',
+    authorId: 'user-1',
+    content: 'A beautiful sunset.',
+    timestamp: '2024-05-21T18:30:00Z',
+    likes: 45,
+    comments: 8,
+    mediaUrl: 'https://picsum.photos/id/1016/600/600',
+    mediaType: 'image',
+  },
+  {
     id: 'post-1',
     authorId: 'user-2',
     content: 'Excited to share that our new feature has officially launched! A big thank you to the entire team for their hard work and dedication. #productlaunch #tech #innovation',
@@ -157,10 +177,18 @@ function loadNotifications() {
     if (typeof window !== 'undefined') {
         const storedNotifications = window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
         if (storedNotifications) {
-            notifications = JSON.parse(storedNotifications);
+            try {
+                const parsed = JSON.parse(storedNotifications);
+                if (Array.isArray(parsed)) {
+                    notifications = parsed;
+                }
+            } catch (e) {
+                console.error("Failed to parse notifications from localStorage", e);
+            }
         }
     }
 }
+
 
 function saveNotifications() {
     if (typeof window !== 'undefined') {

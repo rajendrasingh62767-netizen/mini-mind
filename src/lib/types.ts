@@ -14,6 +14,8 @@ export interface Post {
   timestamp: string;
   likes: number;
   comments: number;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
 }
 
 export interface Message {

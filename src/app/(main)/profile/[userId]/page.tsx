@@ -5,15 +5,16 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications as initialNotifications, followUser, unfollowUser } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
-import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft } from "lucide-react"
+import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft, Grid3x3, AlignJustify } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
-import { User } from "@/lib/types"
+import { User, Post } from "@/lib/types"
 import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
 import { collection, query, where, getDocs, addDoc, serverTimestamp, doc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { cn } from "@/lib/utils"
+import Image from "next/image"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();
@@ -23,6 +24,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const [followers, setFollowers] = useState<User[]>([]);
   const [following, setFollowing] = useState<User[]>([]);
   const [hoveringFollow, setHoveringFollow] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'feed'>('grid');
+
   const [_, forceUpdate] = useReducer((x) => x + 1, 0);
   
   useEffect(() => {
@@ -53,7 +56,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     return notFound();
   }
 
-  const userPosts = initialPosts.filter((post) => post.authorId === user.id)
+  const userPosts = initialPosts.filter((post) => post.authorId === user.id).sort((a,b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
   const isCurrentUser = currentUser ? user.id === currentUser.id : false;
 
   const handleProfileUpdate = (updatedUser: User) => {
@@ -199,6 +202,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                     <span className="font-bold">{followers.length}</span> Followers
                   </button>
                 </FollowersListDialog>
+                 <span className="text-muted-foreground">&middot;</span>
+                 <p><span className="font-bold">{userPosts.length}</span> Posts</p>
               </div>
 
               <p className="text-muted-foreground pt-2">{user.description}</p>
@@ -207,12 +212,47 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         </CardContent>
       </Card>
 
-      <div className="space-y-4">
-        <h2 className="text-2xl font-bold tracking-tight font-headline">{isCurrentUser ? "Your" : `${user.name.split(' ')[0]}'s`} Posts</h2>
+      <div>
+        <div className="flex items-center justify-center border-b">
+           <button 
+              onClick={() => setViewMode('grid')}
+              className={cn(
+                "flex-1 p-3 text-sm font-medium flex justify-center items-center gap-2",
+                viewMode === 'grid' ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
+              )}
+            >
+              <Grid3x3 className="w-4 h-4"/>
+              Grid
+           </button>
+            <button 
+                onClick={() => setViewMode('feed')}
+                className={cn(
+                    "flex-1 p-3 text-sm font-medium flex justify-center items-center gap-2",
+                    viewMode === 'feed' ? "border-b-2 border-primary text-primary" : "text-muted-foreground"
+                )}
+            >
+              <AlignJustify className="w-4 h-4"/>
+              Feed
+            </button>
+        </div>
+
+        <div className="pt-6">
         {userPosts.length > 0 ? (
-          userPosts.map((post) => (
-            <PostCard key={post.id} post={post} author={user} />
-          ))
+           viewMode === 'grid' ? (
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-1 md:gap-4">
+                  {userPosts.filter(p => p.mediaUrl && p.mediaType === 'image').map((post) => (
+                      <div key={post.id} className="relative aspect-square">
+                        <Image src={post.mediaUrl!} alt={post.content} fill className="object-cover rounded-md" />
+                      </div>
+                  ))}
+                </div>
+           ) : (
+             <div className="space-y-4">
+              {userPosts.map((post) => (
+                <PostCard key={post.id} post={post} author={user} />
+              ))}
+             </div>
+           )
         ) : (
           <Card>
             <CardContent className="p-6 text-center text-muted-foreground">
@@ -220,6 +260,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
             </CardContent>
           </Card>
         )}
+        </div>
       </div>
     </div>
   )

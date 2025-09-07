@@ -1,4 +1,5 @@
 
+
 "use client"
 
 import * as React from "react"
@@ -14,7 +15,7 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar"
-import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search, Bell } from "lucide-react"
+import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search, Bell, PlusSquare } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
@@ -98,6 +99,12 @@ export default function MainLayout({
                     Search
                   </SidebarMenuButton>
                 </SidebarMenuItem>
+                 <SidebarMenuItem>
+                  <SidebarMenuButton href="/create">
+                    <PlusSquare />
+                    Create Post
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
                 <SidebarMenuItem>
                   <SidebarMenuButton href="/analyzer">
                     <Sparkles />
@@ -170,6 +177,15 @@ export default function MainLayout({
                             aria-label="Messages"
                             >
                             <MessageCircle className="h-6 w-6" />
+                            </Button>
+                        </Link>
+                        <Link href="/create">
+                            <Button
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Create Post"
+                            >
+                            <PlusSquare className="h-6 w-6" />
                             </Button>
                         </Link>
                          <Link href={`/profile/${currentUser.id}`}>

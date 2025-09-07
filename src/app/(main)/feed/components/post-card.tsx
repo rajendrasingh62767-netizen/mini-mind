@@ -11,6 +11,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { notifications } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
+import Image from "next/image"
 
 
 interface PostCardProps {
@@ -66,8 +67,17 @@ export default function PostCard({ post, author }: PostCardProps) {
           </div>
         </div>
       </CardHeader>
-      <CardContent className="px-4 pb-2">
-        <p className="whitespace-pre-wrap">{post.content}</p>
+      <CardContent className="px-4 pb-2 space-y-4">
+        {post.content && <p className="whitespace-pre-wrap">{post.content}</p>}
+        {post.mediaUrl && (
+          <div className="relative aspect-video rounded-md overflow-hidden border">
+              {post.mediaType === 'image' ? (
+                <Image src={post.mediaUrl} alt={post.content || 'Post image'} fill className="object-cover" />
+              ) : (
+                <video src={post.mediaUrl} controls className="w-full h-full" />
+              )}
+          </div>
+        )}
       </CardContent>
       <CardFooter className="px-4 py-2 flex justify-between items-center border-t">
         <div className="flex gap-1 text-muted-foreground text-sm">
