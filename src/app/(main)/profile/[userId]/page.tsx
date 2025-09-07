@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, conversations, notifications, getFollowers, getFollowing } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil, MessageSquare, UserPlus, Check, ArrowLeft } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
@@ -11,6 +11,9 @@ import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
 import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
+import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
+import { db } from "@/lib/firebase"
+import { notifications } from "@/lib/data"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();
@@ -31,8 +34,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
   useEffect(() => {
     if (currentUser && user) {
-        // In a real app, you'd check a connections list from an API
-        // For this demo, we'll check if a "follow" notification exists
         const followExists = notifications.some(
             n => n.type === 'follow' &&
             n.fromUserId === currentUser.id && n.toUserId === user.id
@@ -54,37 +55,44 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
 
   const handleProfileUpdate = (updatedUser: User) => {
-    // In a real app, this would be an API call to update the user in the database.
     const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
     setUsers(updatedUsers);
     
-    // If the updated user is the current user, also update the data in localStorage
     if (isCurrentUser) {
         setCurrentUser(updatedUser);
         saveUserToLocalStorage(updatedUser);
     }
   }
 
-  const handleMessage = () => {
-    if (!currentUser) return;
-    
-    // Check if a conversation already exists
-    let conversation = conversations.find(c => 
-        c.participantIds.includes(currentUser.id) && c.participantIds.includes(user.id)
-    );
+  const handleMessage = async () => {
+    if (!currentUser || !user || currentUser.id === user.id) return;
 
-    if (!conversation) {
-        // Create a new conversation if one doesn't exist
-        conversation = {
-            id: `conv-${Date.now()}`,
-            participantIds: [currentUser.id, user.id],
-            messages: []
-        };
-        conversations.unshift(conversation); // Add to the beginning of the list
+    try {
+      const sortedParticipantIds = [currentUser.id, user.id].sort();
+      
+      const q = query(
+        collection(db, "conversations"),
+        where("participantIds", "==", sortedParticipantIds)
+      );
+
+      const querySnapshot = await getDocs(q);
+
+      let conversationId: string;
+
+      if (!querySnapshot.empty) {
+        conversationId = querySnapshot.docs[0].id;
+      } else {
+        const newConversationRef = await addDoc(collection(db, "conversations"), {
+          participantIds: sortedParticipantIds,
+          createdAt: serverTimestamp(),
+        });
+        conversationId = newConversationRef.id;
+      }
+      
+      router.push(`/messages?conversationId=${conversationId}`);
+    } catch (error) {
+      console.error("Error creating or fetching conversation:", error);
     }
-    
-    // Redirect to the messages page, with the new/existing conversation selected
-    router.push(`/messages?conversationId=${conversation.id}`);
   }
 
   const handleFollow = () => {
