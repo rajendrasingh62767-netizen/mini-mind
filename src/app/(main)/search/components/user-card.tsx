@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useReducer } from 'react';
 import { User } from '@/lib/types';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -18,6 +18,8 @@ export default function UserCard({ user }: UserCardProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hoveringFollow, setHoveringFollow] = useState(false);
+  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
+
 
   useEffect(() => {
       const Cuser = getLoggedInUser();
@@ -46,6 +48,7 @@ export default function UserCard({ user }: UserCardProps) {
         followUser(currentUser.id, user.id);
         setIsFollowing(true);
     }
+    forceUpdate();
   }
 
   return (

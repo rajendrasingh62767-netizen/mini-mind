@@ -151,6 +151,26 @@ export let notifications: Notification[] = [
     },
 ];
 
+const NOTIFICATIONS_STORAGE_KEY = 'mini-mind-notifications';
+
+function loadNotifications() {
+    if (typeof window !== 'undefined') {
+        const storedNotifications = window.localStorage.getItem(NOTIFICATIONS_STORAGE_KEY);
+        if (storedNotifications) {
+            notifications = JSON.parse(storedNotifications);
+        }
+    }
+}
+
+function saveNotifications() {
+    if (typeof window !== 'undefined') {
+        window.localStorage.setItem(NOTIFICATIONS_STORAGE_KEY, JSON.stringify(notifications));
+    }
+}
+
+loadNotifications();
+
+
 export function followUser(fromUserId: string, toUserId: string) {
     const alreadyFollowing = notifications.some(
         n => n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId
@@ -164,15 +184,17 @@ export function followUser(fromUserId: string, toUserId: string) {
             timestamp: new Date().toISOString(),
             read: false,
         });
+        saveNotifications();
     }
 }
 
 export function unfollowUser(fromUserId: string, toUserId: string) {
-    const index = notifications.findIndex(
-        n => n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId
+    const initialLength = notifications.length;
+    notifications = notifications.filter(
+        n => !(n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId)
     );
-    if (index > -1) {
-        notifications.splice(index, 1);
+    if (notifications.length < initialLength) {
+        saveNotifications();
     }
 }
 

@@ -1,9 +1,9 @@
 "use client"
-import { useState, useEffect } from "react"
+import { useState, useEffect, useReducer } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications, followUser, unfollowUser } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications as initialNotifications, followUser, unfollowUser } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
@@ -23,6 +23,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   const [followers, setFollowers] = useState<User[]>([]);
   const [following, setFollowing] = useState<User[]>([]);
   const [hoveringFollow, setHoveringFollow] = useState(false);
+  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
   
   useEffect(() => {
     const loggedInUser = getLoggedInUser();
@@ -37,7 +38,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
   useEffect(() => {
     if (currentUser && user) {
-        const followExists = notifications.some(
+        const followExists = initialNotifications.some(
             n => n.type === 'follow' &&
             n.fromUserId === currentUser.id && n.toUserId === user.id
         );
@@ -45,7 +46,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
         setFollowers(getFollowers(user.id));
         setFollowing(getFollowing(user.id));
     }
-  }, [currentUser, user, notifications]);
+  }, [currentUser, user]);
 
 
   if (!user) {
@@ -101,6 +102,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     followUser(currentUser.id, user.id);
     setIsFollowing(true);
     setFollowers(getFollowers(user.id)); // Refresh followers list
+    setFollowing(getFollowing(currentUser.id));
+    forceUpdate();
   }
   
   const handleUnfollow = () => {
@@ -108,6 +111,8 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
     unfollowUser(currentUser.id, user.id);
     setIsFollowing(false);
     setFollowers(getFollowers(user.id)); // Refresh followers list
+    setFollowing(getFollowing(currentUser.id));
+    forceUpdate();
   }
   
   if (!currentUser) {
