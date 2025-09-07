@@ -20,7 +20,6 @@ import { currentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
-import ProfileWidget from "@/components/profile/ProfileWidget"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -118,7 +117,15 @@ export default function MainLayout({
               <main>{children}</main>
           </SidebarInset>
           <div className="fixed bottom-6 right-6 flex flex-col-reverse sm:flex-row gap-4">
-              <ProfileWidget />
+              <Link href={`/profile/${currentUser.id}`}>
+                <Button
+                  className="w-16 h-16 rounded-full shadow-lg"
+                  size="icon"
+                  aria-label="Profile"
+                >
+                  <User className="h-8 w-8" />
+                </Button>
+              </Link>
               <Link href="/search">
                 <Button
                   variant="destructive"
