@@ -3,9 +3,9 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications, followUser, unfollowUser } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
-import { Pencil, MessageSquare, UserPlus, Check, ArrowLeft } from "lucide-react"
+import { Pencil, MessageSquare, UserPlus, Check, UserX, ArrowLeft } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
 import EditProfileDialog from "./components/edit-profile-form"
 import { User } from "@/lib/types"
@@ -13,12 +13,16 @@ import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
+import { cn } from "@/lib/utils"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();
   const [users, setUsers] = useState(initialUsers);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [followers, setFollowers] = useState<User[]>([]);
+  const [following, setFollowing] = useState<User[]>([]);
+  const [hoveringFollow, setHoveringFollow] = useState(false);
   
   useEffect(() => {
     const loggedInUser = getLoggedInUser();
@@ -38,8 +42,10 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
             n.fromUserId === currentUser.id && n.toUserId === user.id
         );
         setIsFollowing(followExists);
+        setFollowers(getFollowers(user.id));
+        setFollowing(getFollowing(user.id));
     }
-  }, [currentUser, user]);
+  }, [currentUser, user, notifications]);
 
 
   if (!user) {
@@ -48,10 +54,6 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
   const userPosts = initialPosts.filter((post) => post.authorId === user.id)
   const isCurrentUser = currentUser ? user.id === currentUser.id : false;
-
-  const followers = getFollowers(user.id);
-  const following = getFollowing(user.id);
-
 
   const handleProfileUpdate = (updatedUser: User) => {
     const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
@@ -95,17 +97,17 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   }
 
   const handleFollow = () => {
-    if (isFollowing || !currentUser) return;
-
-    setIsFollowing(true)
-    notifications.unshift({
-      id: `notif-${Date.now()}`,
-      type: 'follow',
-      fromUserId: currentUser.id,
-      toUserId: user.id,
-      timestamp: new Date().toISOString(),
-      read: false,
-    });
+    if (!currentUser || !user) return;
+    followUser(currentUser.id, user.id);
+    setIsFollowing(true);
+    setFollowers(getFollowers(user.id)); // Refresh followers list
+  }
+  
+  const handleUnfollow = () => {
+    if (!currentUser || !user) return;
+    unfollowUser(currentUser.id, user.id);
+    setIsFollowing(false);
+    setFollowers(getFollowers(user.id)); // Refresh followers list
   }
   
   if (!currentUser) {
@@ -154,10 +156,22 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                     </EditProfileDialog>
                     ) : (
                         <div className="flex gap-2">
-                            <Button onClick={handleFollow} disabled={isFollowing}>
-                                {isFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
-                                {isFollowing ? "Following" : "Follow"}
-                            </Button>
+                           {isFollowing ? (
+                              <Button 
+                                variant={hoveringFollow ? "destructive" : "outline"}
+                                onMouseEnter={() => setHoveringFollow(true)}
+                                onMouseLeave={() => setHoveringFollow(false)}
+                                onClick={handleUnfollow}
+                              >
+                                {hoveringFollow ? <UserX className="mr-2 h-4 w-4" /> : <Check className="mr-2 h-4 w-4" />}
+                                {hoveringFollow ? "Unfollow" : "Following"}
+                              </Button>
+                            ) : (
+                              <Button onClick={handleFollow}>
+                                <UserPlus className="mr-2 h-4 w-4" />
+                                Follow
+                              </Button>
+                            )}
                             <Button variant="outline" onClick={handleMessage}>
                                 <MessageSquare className="mr-2 h-4 w-4" />
                                 Message

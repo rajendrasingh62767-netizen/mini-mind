@@ -151,6 +151,32 @@ export let notifications: Notification[] = [
     },
 ];
 
+export function followUser(fromUserId: string, toUserId: string) {
+    const alreadyFollowing = notifications.some(
+        n => n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId
+    );
+    if (!alreadyFollowing) {
+        notifications.unshift({
+            id: `notif-${Date.now()}`,
+            type: 'follow',
+            fromUserId: fromUserId,
+            toUserId: toUserId,
+            timestamp: new Date().toISOString(),
+            read: false,
+        });
+    }
+}
+
+export function unfollowUser(fromUserId: string, toUserId: string) {
+    const index = notifications.findIndex(
+        n => n.type === 'follow' && n.fromUserId === fromUserId && n.toUserId === toUserId
+    );
+    if (index > -1) {
+        notifications.splice(index, 1);
+    }
+}
+
+
 // This is now the definitive way to get the current user.
 // It will default to the first user if not logged in, ONLY in a non-browser environment.
 // In the browser, it relies on localStorage.
