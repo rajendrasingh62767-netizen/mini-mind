@@ -13,13 +13,28 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { FcGoogle } from "react-icons/fc";
+import { useState } from "react"
+import { users } from "@/lib/data"
 
 
 export default function SignupPage() {
   const router = useRouter()
+  const [usernameError, setUsernameError] = useState("");
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
+    setUsernameError("");
+
+    const formData = new FormData(e.currentTarget);
+    const fullName = formData.get("full-name") as string;
+    
+    const isUsernameTaken = users.some(user => user.name.toLowerCase() === fullName.toLowerCase());
+
+    if (isUsernameTaken) {
+      setUsernameError("This username is already taken. Please choose another one.");
+      return;
+    }
+
     // In a real app, you'd have validation and an API call here.
     router.push("/feed")
   }
@@ -49,8 +64,9 @@ export default function SignupPage() {
                 </div>
             </div>
           <div className="grid gap-2">
-            <Label htmlFor="full-name">Full name</Label>
-            <Input id="full-name" placeholder="Alex Johnson" required />
+            <Label htmlFor="full-name">Username</Label>
+            <Input id="full-name" name="full-name" placeholder="alex_johnson" required />
+            {usernameError && <p className="text-sm text-destructive">{usernameError}</p>}
           </div>
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>
