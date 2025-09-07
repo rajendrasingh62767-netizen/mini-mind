@@ -23,7 +23,8 @@ export default function SearchUsers() {
   
   const filteredUsers = users.filter(user => {
       if (submittedSearch.trim() === '') return user.id !== currentUser.id;
-      return user.id !== currentUser.id && user.name.toLowerCase().includes(submittedSearch.toLowerCase())
+      const lowercasedSearch = submittedSearch.toLowerCase();
+      return user.id !== currentUser.id && (user.name.toLowerCase().includes(lowercasedSearch) || user.id.toLowerCase().includes(lowercasedSearch))
   });
 
   return (
@@ -31,7 +32,7 @@ export default function SearchUsers() {
       <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-md">
         <Input
           type="search"
-          placeholder="Search for users..."
+          placeholder="Search by name or ID..."
           value={searchTerm}
           onChange={handleSearchChange}
           className="flex-1"
