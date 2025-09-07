@@ -80,16 +80,16 @@ export default function MainLayout({
                     Feed
                   </SidebarMenuButton>
                 </SidebarMenuItem>
-                <SidebarMenuItem>
-                  <SidebarMenuButton href="/messages">
-                    <MessageCircle />
-                    Messages
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
                  <SidebarMenuItem>
                   <SidebarMenuButton href="/notifications">
                     <Bell />
                     Notifications
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/messages">
+                    <MessageCircle />
+                    Messages
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 <SidebarMenuItem>
