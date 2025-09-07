@@ -5,44 +5,52 @@ import { Input } from '@/components/ui/input';
 import { users, currentUser } from '@/lib/data';
 import { User } from '@/lib/types';
 import UserCard from './user-card';
+import { Button } from '@/components/ui/button';
+import { Search } from 'lucide-react';
 
 export default function SearchUsers() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredUsers, setFilteredUsers] = useState<User[]>(users.filter(u => u.id !== currentUser.id));
+  const [submittedSearch, setSubmittedSearch] = useState('');
 
-  const handleSearch = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const term = event.target.value;
-    setSearchTerm(term);
-
-    if (term.trim() === '') {
-      setFilteredUsers(users.filter(u => u.id !== currentUser.id));
-      return;
-    }
-
-    const lowercasedTerm = term.toLowerCase();
-    const results = users.filter(user =>
-      user.id !== currentUser.id && user.name.toLowerCase().includes(lowercasedTerm)
-    );
-    setFilteredUsers(results);
+  const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(event.target.value);
   };
+  
+  const handleSearchSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmittedSearch(searchTerm);
+  };
+  
+  const filteredUsers = users.filter(user => {
+      if (submittedSearch.trim() === '') return user.id !== currentUser.id;
+      return user.id !== currentUser.id && user.name.toLowerCase().includes(submittedSearch.toLowerCase())
+  });
 
   return (
     <div className="space-y-4">
-      <Input
-        type="search"
-        placeholder="Search for users..."
-        value={searchTerm}
-        onChange={handleSearch}
-        className="max-w-md"
-      />
+      <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 max-w-md">
+        <Input
+          type="search"
+          placeholder="Search for users..."
+          value={searchTerm}
+          onChange={handleSearchChange}
+          className="flex-1"
+        />
+        <Button type="submit" variant="destructive">
+          <Search className="mr-2 h-4 w-4" />
+          Search
+        </Button>
+      </form>
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {filteredUsers.map(user => (
           <UserCard key={user.id} user={user} />
         ))}
       </div>
-      {filteredUsers.length === 0 && (
+      
+      {filteredUsers.length === 0 && submittedSearch && (
          <div className="text-center text-muted-foreground py-10">
-            <p>No users found matching "{searchTerm}".</p>
+            <p>No users found matching "{submittedSearch}".</p>
         </div>
       )}
     </div>
