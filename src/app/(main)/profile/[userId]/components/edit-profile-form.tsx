@@ -19,10 +19,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Loader2, Pencil } from "lucide-react"
+import { Loader2 } from "lucide-react"
 
 const formSchema = z.object({
   name: z.string().min(2, "Name must be at least 2 characters."),
+  username: z.string().min(3, "Username must be at least 3 characters."),
   avatar: z.any().optional(),
 })
 
@@ -47,6 +48,7 @@ export default function EditProfileDialog({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: user.name,
+      username: user.username,
     },
   })
 
@@ -81,6 +83,7 @@ export default function EditProfileDialog({
     const updatedUser = {
       ...user,
       name: values.name,
+      username: values.username,
       avatarUrl: avatarUrl,
     }
 
@@ -126,6 +129,15 @@ export default function EditProfileDialog({
             {form.formState.errors.name && (
               <p className="text-sm text-destructive">
                 {form.formState.errors.name.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" {...form.register("username")} />
+            {form.formState.errors.username && (
+              <p className="text-sm text-destructive">
+                {form.formState.errors.username.message}
               </p>
             )}
           </div>

@@ -4,6 +4,7 @@ export const users: User[] = [
   {
     id: 'user-1',
     name: 'Alex Johnson',
+    username: 'alexj',
     email: 'alex.j@example.com',
     avatarUrl: 'https://picsum.photos/id/1005/100/100',
     description: 'Software Engineer at TechCorp. Passionate about AI and building scalable systems. Opinions are my own.',
@@ -11,6 +12,7 @@ export const users: User[] = [
   {
     id: 'user-2',
     name: 'Samantha Lee',
+    username: 'samlee',
     email: 'sam.lee@example.com',
     avatarUrl: 'https://picsum.photos/id/1011/100/100',
     description: 'Product Manager at Innovate Ltd. Focused on user-centric design and agile development. Let\'s connect!',
@@ -18,6 +20,7 @@ export const users: User[] = [
   {
     id: 'user-3',
     name: 'Michael Chen',
+    username: 'mikechen',
     email: 'michael.c@example.com',
     avatarUrl: 'https://picsum.photos/id/1025/100/100',
     description: 'UX/UI Designer creating intuitive digital experiences. Currently exploring the intersection of art and technology.',
@@ -25,6 +28,7 @@ export const users: User[] = [
     {
     id: 'user-4',
     name: 'Emily Carter',
+    username: 'emilyc',
     email: 'emily.c@example.com',
     avatarUrl: 'https://picsum.photos/id/1027/100/100',
     description: 'Marketing Director at Growth Co. Helping brands tell their stories and connect with their audience.',

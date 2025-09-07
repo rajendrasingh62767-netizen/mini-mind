@@ -51,7 +51,10 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
 
             <div className="space-y-2 flex-1">
               <div className="flex justify-between items-start">
-                <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
+                <div>
+                    <h1 className="text-3xl font-bold font-headline">{user.name}</h1>
+                    <p className="text-muted-foreground text-lg">@{user.username}</p>
+                </div>
                 {isCurrentUser && (
                    <EditProfileDialog user={user} onProfileUpdate={handleProfileUpdate}>
                     <Button variant="outline" size="icon">

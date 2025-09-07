@@ -26,9 +26,9 @@ export default function SignupPage() {
     setUsernameError("");
 
     const formData = new FormData(e.currentTarget);
-    const fullName = formData.get("full-name") as string;
+    const username = formData.get("username") as string;
     
-    const isUsernameTaken = users.some(user => user.name.toLowerCase() === fullName.toLowerCase());
+    const isUsernameTaken = users.some(user => user.username.toLowerCase() === username.toLowerCase());
 
     if (isUsernameTaken) {
       setUsernameError("This username is already taken. Please choose another one.");
@@ -63,9 +63,13 @@ export default function SignupPage() {
                 </span>
                 </div>
             </div>
+           <div className="grid gap-2">
+            <Label htmlFor="full-name">Full Name</Label>
+            <Input id="full-name" name="full-name" placeholder="Alex Johnson" required />
+          </div>
           <div className="grid gap-2">
-            <Label htmlFor="full-name">Username</Label>
-            <Input id="full-name" name="full-name" placeholder="alex_johnson" required />
+            <Label htmlFor="username">Username</Label>
+            <Input id="username" name="username" placeholder="alexj" required />
             {usernameError && <p className="text-sm text-destructive">{usernameError}</p>}
           </div>
           <div className="grid gap-2">
