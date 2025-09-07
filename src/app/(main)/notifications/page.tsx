@@ -6,30 +6,54 @@ import { notifications as initialNotifications, users, posts, getCurrentUser } f
 import { User, Notification as NotificationType, Post } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
-import { Bell, ThumbsUp, UserPlus } from "lucide-react"
+import { Bell, ThumbsUp, UserPlus, Check } from "lucide-react"
 import Link from "next/link"
 import { formatDistanceToNow } from 'date-fns'
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
 
 export default function NotificationsPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [notifications, setNotifications] = useState<NotificationType[]>([]);
+  const [notifications, setNotifications] = useState<NotificationType[]>(initialNotifications);
 
   useEffect(() => {
     const user = getCurrentUser();
     setCurrentUser(user);
-    if (user) {
-        const userNotifications = initialNotifications
-            .filter(n => n.toUserId === user.id)
-            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-        setNotifications(userNotifications);
-    }
   }, []);
+
+  const userNotifications = currentUser 
+    ? notifications
+        .filter(n => n.toUserId === currentUser.id)
+        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+    : [];
 
   const markAsRead = (notificationId: string) => {
     setNotifications(prev => prev.map(n => n.id === notificationId ? { ...n, read: true } : n));
     // In a real app, you'd also update this on the server
   };
+
+  const handleFollowBack = (followerId: string) => {
+    if (!currentUser) return;
+    
+    // Create a new notification for the follow action
+    const newFollowNotification: NotificationType = {
+      id: `notif-${Date.now()}`,
+      type: 'follow',
+      fromUserId: currentUser.id,
+      toUserId: followerId,
+      timestamp: new Date().toISOString(),
+      read: false, // This would be relevant for the other user
+    };
+
+    // Add the new notification to the global state
+    setNotifications(prev => [newFollowNotification, ...prev]);
+  };
+  
+  const isFollowing = (userId: string) => {
+    if (!currentUser) return false;
+    return notifications.some(n => n.type === 'follow' && n.fromUserId === currentUser.id && n.toUserId === userId);
+  };
+
 
   if (!currentUser) return <p>Loading...</p>;
 
@@ -87,17 +111,18 @@ export default function NotificationsPage() {
       
       <Card>
         <CardContent className="p-0">
-          {notifications.length > 0 ? (
+          {userNotifications.length > 0 ? (
             <ul className="divide-y">
-                {notifications.map(notification => {
+                {userNotifications.map(notification => {
                     const fromUser = users.find(u => u.id === notification.fromUserId);
                     if (!fromUser) return null;
+                    const alreadyFollowing = isFollowing(fromUser.id);
 
                     return (
                       <li 
                         key={notification.id} 
                         className={cn(
-                          "flex items-start gap-4 p-4 transition-colors hover:bg-muted/50",
+                          "flex items-center gap-4 p-4 transition-colors hover:bg-muted/50",
                           !notification.read && "bg-primary/5"
                         )}
                         onClick={() => markAsRead(notification.id)}
@@ -119,9 +144,24 @@ export default function NotificationsPage() {
                                 {formatDistanceToNow(new Date(notification.timestamp), { addSuffix: true })}
                             </p>
                         </div>
-                         {!notification.read && (
-                            <div className="w-3 h-3 rounded-full bg-primary mt-1" title="Unread"></div>
-                        )}
+                        <div className="flex items-center gap-2">
+                            {notification.type === 'follow' && (
+                                <Button 
+                                    size="sm" 
+                                    onClick={(e) => {
+                                        e.stopPropagation(); // Prevent li onClick from firing
+                                        handleFollowBack(fromUser.id);
+                                    }}
+                                    disabled={alreadyFollowing}
+                                >
+                                    {alreadyFollowing ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
+                                    {alreadyFollowing ? 'Following' : 'Follow Back'}
+                                </Button>
+                            )}
+                            {!notification.read && (
+                                <div className="w-3 h-3 rounded-full bg-primary" title="Unread"></div>
+                            )}
+                        </div>
                       </li>
                     )
                 })}
@@ -138,3 +178,5 @@ export default function NotificationsPage() {
     </div>
   )
 }
+
+    
