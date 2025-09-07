@@ -1,10 +1,28 @@
 import AnalyzerForm from "./components/analyzer-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
-import { getCurrentUser } from "@/lib/data";
+import { getLoggedInUser } from "@/lib/auth";
+import { useEffect, useState } from "react";
+import type { User } from "@/lib/types";
+import { useRouter } from "next/navigation";
 
 export default function AnalyzerPage() {
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const user = getLoggedInUser();
+    if (!user) {
+      router.push('/login');
+    } else {
+      setCurrentUser(user);
+    }
+  }, [router]);
+
+  if (!currentUser) {
+    return <p>Loading...</p>;
+  }
+
   return (
     <div className="space-y-6">
       <Card>

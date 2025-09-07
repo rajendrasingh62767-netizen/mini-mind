@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/sidebar"
 import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search, Bell } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { getCurrentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
@@ -33,6 +32,7 @@ import {
 } from "@/components/ui/alert-dialog"
 import { useRouter } from "next/navigation"
 import { clearUserFromLocalStorage, getLoggedInUser } from "@/lib/auth"
+import type { User as UserType } from "@/lib/types"
 
 export default function MainLayout({
   children,
@@ -40,14 +40,14 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   const router = useRouter();
-  const [currentUser, setCurrentUser] = React.useState(getCurrentUser());
+  const [currentUser, setCurrentUser] = React.useState<UserType | null>(null);
 
   React.useEffect(() => {
     const user = getLoggedInUser();
     if (!user) {
       router.push('/login');
     } else {
-        setCurrentUser(user);
+      setCurrentUser(user);
     }
   }, [router]);
 

@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
-import { users, getCurrentUser } from '@/lib/data';
+import { users } from '@/lib/data';
+import { getLoggedInUser } from '@/lib/auth';
 import { User } from '@/lib/types';
 import UserCard from './user-card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +15,7 @@ export default function SearchUsers() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setCurrentUser(getCurrentUser());
+    setCurrentUser(getLoggedInUser());
   }, []);
 
   const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {

@@ -3,7 +3,7 @@ import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing } from "@/lib/data"
+import { users as initialUsers, posts as initialPosts, getFollowers, getFollowing, notifications } from "@/lib/data"
 import PostCard from "../../feed/components/post-card"
 import { Pencil, MessageSquare, UserPlus, Check, ArrowLeft } from "lucide-react"
 import { notFound, useRouter } from "next/navigation"
@@ -13,7 +13,6 @@ import { getLoggedInUser, saveUserToLocalStorage } from "@/lib/auth"
 import FollowersListDialog from "./components/followers-list-dialog"
 import { collection, query, where, getDocs, addDoc, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
-import { notifications } from "@/lib/data"
 
 export default function ProfilePage({ params }: { params: { userId: string } }) {
   const router = useRouter();

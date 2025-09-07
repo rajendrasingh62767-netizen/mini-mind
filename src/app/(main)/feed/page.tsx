@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { posts as initialPosts, users, getCurrentUser } from "@/lib/data";
+import { posts as initialPosts, users } from "@/lib/data";
+import { getLoggedInUser } from "@/lib/auth";
 import CreatePostForm from "./components/create-post-form";
 import PostCard from "./components/post-card";
 import { Post, User } from "@/lib/types";
@@ -11,7 +12,7 @@ export default function FeedPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-    setCurrentUser(getCurrentUser());
+    setCurrentUser(getLoggedInUser());
   }, []);
 
 

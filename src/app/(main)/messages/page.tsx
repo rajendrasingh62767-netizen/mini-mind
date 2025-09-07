@@ -3,7 +3,8 @@
 
 import { useState, useEffect, useCallback } from "react"
 import { useSearchParams } from 'next/navigation'
-import { users as initialUsers, getCurrentUser } from "@/lib/data"
+import { users as initialUsers } from "@/lib/data"
+import { getLoggedInUser } from "@/lib/auth"
 import { Conversation as ConversationType, User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Card } from "@/components/ui/card"
@@ -11,11 +12,11 @@ import { Input } from "@/components/ui/input"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import ChatInterface from "./components/chat-interface"
 import { cn } from "@/lib/utils"
-import { format, formatDistanceToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2 } from "lucide-react"
-import { collection, query, where, getDocs, onSnapshot, addDoc, serverTimestamp, doc, getDoc, orderBy } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, addDoc, serverTimestamp, doc, getDocs, orderBy } from 'firebase/firestore'
 import { db } from "@/lib/firebase"
 
 
@@ -31,9 +32,8 @@ export default function MessagesPage() {
   const [isCreatingConversation, setIsCreatingConversation] = useState(false);
 
   useEffect(() => {
-    // In a real app, you might fetch this from a 'users' collection in Firestore
     setAllUsers(initialUsers); 
-    const user = getCurrentUser();
+    const user = getLoggedInUser();
     if (user) {
         setCurrentUser(user);
     } else {
@@ -55,7 +55,6 @@ export default function MessagesPage() {
       const convos: ConversationType[] = [];
       for (const doc of querySnapshot.docs) {
         const convoData = doc.data();
-        const participantId = convoData.participantIds.find((id: string) => id !== currentUser.id);
         const lastMessage = convoData.lastMessage ? {
             ...convoData.lastMessage,
             timestamp: convoData.lastMessage.timestamp?.toDate ? convoData.lastMessage.timestamp.toDate().toISOString() : new Date().toISOString(),
@@ -70,7 +69,6 @@ export default function MessagesPage() {
       }
 
       setConversations(convos);
-      setIsLoading(false);
       
       const conversationId = searchParams.get('conversationId');
       if (conversationId) {
@@ -79,11 +77,11 @@ export default function MessagesPage() {
             setSelectedConversation(convoToSelect);
         }
       } else if (convos.length > 0 && !selectedConversation) {
-        // Don't auto-select on mobile, show the list first
         if (window.innerWidth >= 768) { 
            setSelectedConversation(convos[0]);
         }
       }
+      setIsLoading(false);
 
     });
 

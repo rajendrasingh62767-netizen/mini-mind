@@ -151,19 +151,22 @@ export let notifications: Notification[] = [
     },
 ];
 
-// This is now a function that can dynamically get the user
-// It will default to the first user if not logged in, which is useful for development
-// but in a real app, you'd enforce a login.
+// This is now the definitive way to get the current user.
+// It will default to the first user if not logged in, ONLY in a non-browser environment.
+// In the browser, it relies on localStorage.
 export function getCurrentUser(): User {
   if (typeof window !== 'undefined') {
     const loggedInUser = getLoggedInUser();
     if (loggedInUser) {
-        // Ensure the user from local storage exists in our "database"
         const fullUser = users.find(u => u.id === loggedInUser.id);
         if(fullUser) return fullUser;
     }
+    // If in browser and not logged in, we ideally redirect.
+    // For components that need a user before redirect, we might return a default.
+    // Or, more safely, those components should handle a null user.
   }
-  return users[0];
+  // Default for server-side rendering or if something goes wrong.
+  return users[0]; 
 };
 
 export function getFollowers(userId: string): User[] {

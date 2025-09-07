@@ -2,7 +2,8 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { notifications as initialNotifications, users, posts, getCurrentUser } from "@/lib/data"
+import { notifications as initialNotifications, users, posts } from "@/lib/data"
+import { getLoggedInUser } from "@/lib/auth"
 import { User, Notification as NotificationType, Post } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
@@ -17,7 +18,7 @@ export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<NotificationType[]>(initialNotifications);
 
   useEffect(() => {
-    const user = getCurrentUser();
+    const user = getLoggedInUser();
     setCurrentUser(user);
   }, []);
 

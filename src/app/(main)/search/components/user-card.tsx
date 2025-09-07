@@ -7,7 +7,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Check } from 'lucide-react';
 import Link from 'next/link';
-import { notifications, getCurrentUser } from '@/lib/data';
+import { notifications } from '@/lib/data';
+import { getLoggedInUser } from '@/lib/auth';
 
 interface UserCardProps {
   user: User;
@@ -18,11 +19,9 @@ export default function UserCard({ user }: UserCardProps) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
 
   useEffect(() => {
-      const Cuser = getCurrentUser();
+      const Cuser = getLoggedInUser();
       setCurrentUser(Cuser);
        if (Cuser) {
-        // In a real app, you'd check a connections list from an API
-        // For this demo, we'll check if a "follow" notification exists
         const followExists = notifications.some(
             n => n.type === 'follow' &&
             n.fromUserId === Cuser.id && n.toUserId === user.id

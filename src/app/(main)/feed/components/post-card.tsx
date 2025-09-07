@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Post, User } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,7 @@ import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { notifications } from "@/lib/data"
-import { getCurrentUser } from "@/lib/data"
+import { getLoggedInUser } from "@/lib/auth"
 
 
 interface PostCardProps {
@@ -22,7 +22,11 @@ export default function PostCard({ post, author }: PostCardProps) {
   const timeAgo = formatDistanceToNow(new Date(post.timestamp), { addSuffix: true });
   const [likes, setLikes] = useState(post.likes);
   const [isLiked, setIsLiked] = useState(false);
-  const currentUser = getCurrentUser();
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    setCurrentUser(getLoggedInUser());
+  }, []);
 
   const handleLike = () => {
     if (isLiked) {
