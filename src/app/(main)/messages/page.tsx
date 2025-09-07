@@ -27,6 +27,7 @@ export default function MessagesPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [allUsers, setAllUsers] = useState<User[]>([]);
+  const [isCreatingConversation, setIsCreatingConversation] = useState(false);
 
   useEffect(() => {
     // In a real app, you might fetch this from a 'users' collection in Firestore
@@ -45,7 +46,8 @@ export default function MessagesPage() {
     setIsLoading(true);
     const q = query(
       collection(db, "conversations"), 
-      where("participantIds", "array-contains", currentUser.id)
+      where("participantIds", "array-contains", currentUser.id),
+      orderBy("lastMessage.timestamp", "desc")
     );
 
     const unsubscribe = onSnapshot(q, async (querySnapshot) => {
@@ -65,21 +67,16 @@ export default function MessagesPage() {
           lastMessage: lastMessage,
         });
       }
-      // Sort conversations by the timestamp of the last message
-      convos.sort((a, b) => {
-        if (!a.lastMessage?.timestamp) return 1;
-        if (!b.lastMessage?.timestamp) return -1;
-        return new Date(b.lastMessage.timestamp).getTime() - new Date(a.lastMessage.timestamp).getTime();
-      });
 
       setConversations(convos);
       setIsLoading(false);
       
-      // After fetching convos, check if a specific one should be selected
       const conversationId = searchParams.get('conversationId');
       if (conversationId) {
         const convoToSelect = convos.find(c => c.id === conversationId);
-        setSelectedConversation(convoToSelect || null);
+        if(convoToSelect){
+            setSelectedConversation(convoToSelect);
+        }
       } else if (convos.length > 0 && !selectedConversation) {
         setSelectedConversation(convos[0]);
       }
@@ -88,7 +85,7 @@ export default function MessagesPage() {
 
     return () => unsubscribe();
 
-  }, [currentUser, searchParams, selectedConversation]);
+  }, [currentUser, searchParams]);
 
   const getParticipant = useCallback((convo: ConversationType) => {
     if (!currentUser) return null;
@@ -102,42 +99,38 @@ export default function MessagesPage() {
   }
 
   const handleSelectUser = async (user: User) => {
-    if (!currentUser) return;
+    if (!currentUser || isCreatingConversation) return;
+    setIsCreatingConversation(true);
 
-    // Check if a conversation already exists
-    const q = query(
-      collection(db, "conversations"),
-      where("participantIds", "==", [currentUser.id, user.id].sort())
-    );
-    const querySnapshot = await getDocs(q);
+    try {
+        const sortedParticipantIds = [currentUser.id, user.id].sort();
+        const q = query(
+            collection(db, "conversations"),
+            where("participantIds", "==", sortedParticipantIds)
+        );
+        const querySnapshot = await getDocs(q);
 
-    if (!querySnapshot.empty) {
-        // Conversation exists
-        const convoDoc = querySnapshot.docs[0];
-        handleSelectConversation({ id: convoDoc.id, participantIds: convoDoc.data().participantIds, messages: [] });
-    } else {
-        // Create a new conversation
-        const newConversationRef = await addDoc(collection(db, "conversations"), {
-            participantIds: [currentUser.id, user.id].sort(),
-            createdAt: serverTimestamp()
-        });
-        handleSelectConversation({ id: newConversationRef.id, participantIds: [currentUser.id, user.id], messages: [] });
+        if (!querySnapshot.empty) {
+            const convoDoc = querySnapshot.docs[0];
+            handleSelectConversation({ id: convoDoc.id, participantIds: convoDoc.data().participantIds, messages: [] });
+        } else {
+            const newConversationRef = await addDoc(collection(db, "conversations"), {
+                participantIds: sortedParticipantIds,
+                createdAt: serverTimestamp(),
+                lastMessage: null
+            });
+            handleSelectConversation({ id: newConversationRef.id, participantIds: sortedParticipantIds, messages: [] });
+        }
+    } catch(error) {
+        console.error("Error selecting or creating conversation:", error);
+    } finally {
+        setIsCreatingConversation(false);
     }
   }
   
-  const getConversationParticipantIds = () => {
-    const ids = new Set<string>();
-    conversations.forEach(c => {
-      c.participantIds.forEach(id => ids.add(id));
-    });
-    return ids;
-  };
-
-
   const filteredUsers = searchTerm.trim() !== '' ? allUsers.filter(user => {
     if (!currentUser || user.id === currentUser.id) return false;
     
-    // Check if a conversation with this user already exists in the currently loaded conversations
     const conversationExists = conversations.some(c => c.participantIds.includes(user.id));
     if(conversationExists) return false;
 
@@ -219,6 +212,7 @@ export default function MessagesPage() {
                 key={user.id}
                 className="flex items-center gap-3 p-4 cursor-pointer hover:bg-muted/50"
                 onClick={() => handleSelectUser(user)}
+                aria-disabled={isCreatingConversation}
               >
                 <Avatar>
                   <AvatarImage src={user.avatarUrl} alt={user.name} />
@@ -228,6 +222,7 @@ export default function MessagesPage() {
                   <p className="font-semibold truncate">{user.name}</p>
                   <p className="text-sm text-muted-foreground truncate">@{user.username}</p>
                 </div>
+                {isCreatingConversation && <Loader2 className="h-4 w-4 animate-spin" />}
               </div>
             ))}
             {filteredConversations.length === 0 && filteredUsers.length === 0 && searchTerm.trim() !== '' && (
