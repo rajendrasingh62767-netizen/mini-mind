@@ -14,7 +14,6 @@ import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search } from "l
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { currentUser } from "@/lib/data"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
-import ChatWidget from "@/components/chat/ChatWidget"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import ProfileWidget from "@/components/profile/ProfileWidget"
@@ -97,7 +96,7 @@ export default function MainLayout({
             </header>
             <main>{children}</main>
         </SidebarInset>
-        <div className="fixed bottom-6 right-24 flex gap-4">
+        <div className="fixed bottom-6 right-6 flex flex-col-reverse sm:flex-row gap-4">
             <ProfileWidget />
             <Link href="/search">
               <Button
@@ -109,8 +108,16 @@ export default function MainLayout({
                 <Search className="h-8 w-8" />
               </Button>
             </Link>
+            <Link href="/messages">
+              <Button
+                className="w-16 h-16 rounded-full shadow-lg"
+                size="icon"
+                aria-label="Messages"
+              >
+                <MessageCircle className="h-8 w-8" />
+              </Button>
+            </Link>
         </div>
-        <ChatWidget />
       </div>
     </SidebarProvider>
   )
