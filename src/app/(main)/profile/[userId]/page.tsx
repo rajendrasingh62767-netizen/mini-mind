@@ -28,6 +28,20 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   
   const user = users.find((u) => u.id === params.userId)
 
+  useEffect(() => {
+    if (currentUser && user) {
+        // In a real app, you'd check a connections list from an API
+        // For this demo, we'll check if a "connection" notification exists
+        const connectionExists = notifications.some(
+            n => n.type === 'connection' &&
+            ((n.fromUserId === currentUser.id && n.toUserId === user.id) || 
+             (n.fromUserId === user.id && n.toUserId === currentUser.id))
+        );
+        setIsConnected(connectionExists);
+    }
+  }, [currentUser, user]);
+
+
   if (!user) {
     return notFound();
   }
@@ -70,17 +84,17 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
   }
 
   const handleConnect = () => {
-    setIsConnected(!isConnected)
-    if (!isConnected && currentUser) {
-      notifications.unshift({
-        id: `notif-${Date.now()}`,
-        type: 'connection',
-        fromUserId: currentUser.id,
-        toUserId: user.id,
-        timestamp: new Date().toISOString(),
-        read: false,
-      });
-    }
+    if (isConnected || !currentUser) return;
+
+    setIsConnected(true)
+    notifications.unshift({
+      id: `notif-${Date.now()}`,
+      type: 'connection',
+      fromUserId: currentUser.id,
+      toUserId: user.id,
+      timestamp: new Date().toISOString(),
+      read: false,
+    });
   }
   
   if (!currentUser) {
@@ -122,7 +136,7 @@ export default function ProfilePage({ params }: { params: { userId: string } }) 
                   </EditProfileDialog>
                 ) : (
                     <div className="flex gap-2">
-                        <Button onClick={handleConnect}>
+                        <Button onClick={handleConnect} disabled={isConnected}>
                             {isConnected ? <Check className="mr-2 h-4 w-4" /> : <UserPlus className="mr-2 h-4 w-4" />}
                             {isConnected ? "Connected" : "Connect"}
                         </Button>
