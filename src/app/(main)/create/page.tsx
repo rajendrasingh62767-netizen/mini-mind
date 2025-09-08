@@ -199,12 +199,14 @@ export default function CreatePostPage() {
                     <DialogTitle>Select a Song</DialogTitle>
                     </DialogHeader>
                     <Tabs defaultValue="hindi">
-                        <TabsList className="grid w-full grid-cols-2">
+                        <TabsList className="grid w-full grid-cols-4">
                             <TabsTrigger value="hindi">Hindi</TabsTrigger>
                             <TabsTrigger value="bhojpuri">Bhojpuri</TabsTrigger>
+                            <TabsTrigger value="nusrat">Nusrat</TabsTrigger>
+                            <TabsTrigger value="talwinder">Talwinder</TabsTrigger>
                         </TabsList>
                         <ScrollArea className="h-72">
-                            <TabsContent value="hindi">
+                             <TabsContent value="hindi">
                                 <div className="space-y-1 p-1">
                                 {songs.hindi.map((song, index) => (
                                     <div key={`hindi-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
@@ -218,6 +220,26 @@ export default function CreatePostPage() {
                                  <div className="space-y-1 p-1">
                                 {songs.bhojpuri.map((song, index) => (
                                     <div key={`bhojpuri-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
+                                        <p className="font-semibold">{song.title}</p>
+                                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                    </div>
+                                ))}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="nusrat">
+                                <div className="space-y-1 p-1">
+                                {songs.nusrat.map((song, index) => (
+                                    <div key={`nusrat-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
+                                        <p className="font-semibold">{song.title}</p>
+                                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                    </div>
+                                ))}
+                                </div>
+                            </TabsContent>
+                             <TabsContent value="talwinder">
+                                <div className="space-y-1 p-1">
+                                {songs.talwinder.map((song, index) => (
+                                    <div key={`talwinder-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
                                         <p className="font-semibold">{song.title}</p>
                                         <p className="text-sm text-muted-foreground">{song.artist}</p>
                                     </div>

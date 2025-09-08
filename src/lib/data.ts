@@ -1,4 +1,4 @@
-import { User, Post, Conversation, Notification, Song } from '@/lib/types';
+import { User, Post, Conversation, Notification, SongCollection } from '@/lib/types';
 import { getLoggedInUser } from './auth';
 import { db } from './firebase';
 import { addDoc, collection, deleteDoc, getDocs, query, where } from 'firebase/firestore';
@@ -55,7 +55,7 @@ export let users: User[] = [
   },
 ];
 
-export const songs: { hindi: Song[], bhojpuri: Song[] } = {
+export const songs: SongCollection = {
   hindi: [
     { title: "Kesariya", artist: "Arijit Singh" },
     { title: "Chaleya", artist: "Arijit Singh, Shilpa Rao" },
@@ -69,6 +69,20 @@ export const songs: { hindi: Song[], bhojpuri: Song[] } = {
     { title: "Lollipop Lagelu", artist: "Pawan Singh" },
     { title: "Theek Hai", artist: "Khesari Lal Yadav" },
     { title: "Dhani Ho Sab Dhan", artist: "Pawan Singh" },
+  ],
+  nusrat: [
+    { title: "Afreen Afreen", artist: "Nusrat Fateh Ali Khan, Rahat Fateh Ali Khan" },
+    { title: "Mere Rashke Qamar", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Tumhe Dillagi", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Sanu Ek Pal Chain", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Allah Hoo Allah Hoo", artist: "Nusrat Fateh Ali Khan" },
+  ],
+  talwinder: [
+    { title: "Gallan", artist: "Talwinder" },
+    { title: "Khayaal", artist: "Talwinder" },
+    { title: "Fanna", artist: "Talwinder" },
+    { title: "Tera Saath", artist: "Talwinder" },
+    { title: "Sohneya", artist: "Talwinder" },
   ],
 };
 

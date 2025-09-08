@@ -54,3 +54,7 @@ export interface Song {
   title: string;
   artist: string;
 }
+
+export interface SongCollection {
+  [key: string]: Song[];
+}
