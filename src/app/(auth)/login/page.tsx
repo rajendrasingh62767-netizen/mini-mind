@@ -1,3 +1,4 @@
+
 "use client"
 
 import Link from "next/link"
@@ -28,9 +29,9 @@ export default function LoginPage() {
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const email = formData.get("email") as string;
+    const username = formData.get("username") as string;
     
-    const user = users.find(u => u.email.toLowerCase() === email.toLowerCase());
+    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
 
     if (user) {
       saveUserToLocalStorage(user);
@@ -40,7 +41,7 @@ export default function LoginPage() {
       });
       router.push("/feed")
     } else {
-        setError("Invalid email or password.");
+        setError("Invalid username or password.");
     }
   }
 
@@ -49,7 +50,7 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
-          Enter your email below to login to your account.
+          Enter your username below to login to your account.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -69,12 +70,12 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="username">Username</Label>
             <Input
-              id="email"
-              name="email"
-              type="email"
-              placeholder="m@example.com"
+              id="username"
+              name="username"
+              type="text"
+              placeholder="alexj"
               required
             />
           </div>
