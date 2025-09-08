@@ -1,4 +1,4 @@
-import { User, Post, Conversation, Notification } from '@/lib/types';
+import { User, Post, Conversation, Notification, Song } from '@/lib/types';
 import { getLoggedInUser } from './auth';
 import { db } from './firebase';
 import { addDoc, collection, deleteDoc, getDocs, query, where } from 'firebase/firestore';
@@ -54,6 +54,24 @@ export let users: User[] = [
     description: 'A new user of Mini Mind.',
   },
 ];
+
+export const songs: { hindi: Song[], bhojpuri: Song[] } = {
+  hindi: [
+    { title: "Kesariya", artist: "Arijit Singh" },
+    { title: "Chaleya", artist: "Arijit Singh, Shilpa Rao" },
+    { title: "Apna Bana Le", artist: "Arijit Singh" },
+    { title: "Heeriye", artist: "Arijit Singh, Jasleen Royal" },
+    { title: "Tum Hi Ho", artist: "Arijit Singh" },
+  ],
+  bhojpuri: [
+    { title: "Raja Ji Ke Dilwa", artist: "Pawan Singh" },
+    { title: "Le Le Aayi Coca Cola", artist: "Khesari Lal Yadav" },
+    { title: "Lollipop Lagelu", artist: "Pawan Singh" },
+    { title: "Theek Hai", artist: "Khesari Lal Yadav" },
+    { title: "Dhani Ho Sab Dhan", artist: "Pawan Singh" },
+  ],
+};
+
 
 // This is now legacy data, kept for user info and initial seeding if necessary.
 // App will now use Firestore for posts.

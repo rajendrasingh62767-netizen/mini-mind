@@ -6,7 +6,7 @@ import { Post, User, Comment as CommentType } from "@/lib/types"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { ThumbsUp, MessageSquare, Share2, Send, Loader2 } from "lucide-react"
+import { ThumbsUp, MessageSquare, Share2, Send, Loader2, Music } from "lucide-react"
 import { formatDistanceToNow } from 'date-fns'
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -176,6 +176,12 @@ export default function PostCard({ post, author }: PostCardProps) {
       </CardHeader>
       <CardContent className="px-4 pb-2 space-y-4">
         {post.content && <p className="whitespace-pre-wrap">{post.content}</p>}
+        {post.song && (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 rounded-md bg-muted/50 border">
+                <Music className="h-4 w-4" />
+                <span>{post.song}</span>
+            </div>
+        )}
         {post.mediaUrl && (
           <div className="relative aspect-video rounded-md overflow-hidden border">
               {post.mediaType === 'image' ? (

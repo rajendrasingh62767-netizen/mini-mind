@@ -16,6 +16,7 @@ export interface Post {
   comments: number;
   mediaUrl?: string;
   mediaType?: 'image' | 'video';
+  song?: string;
 }
 
 export interface Comment {
@@ -47,4 +48,9 @@ export interface Notification {
     postId?: string; // only for 'like' type
     timestamp: any; // Allow for Firestore ServerTimestamp
     read: boolean;
+}
+
+export interface Song {
+  title: string;
+  artist: string;
 }

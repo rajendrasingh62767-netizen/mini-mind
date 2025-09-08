@@ -1,19 +1,23 @@
 
 "use client"
-import { useState, useReducer, useEffect } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { getLoggedInUser } from "@/lib/auth"
-import { Post, User } from "@/lib/types"
+import { Post, User, Song } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { PlusSquare, Loader2, Image as ImageIcon, Video, ArrowLeft } from "lucide-react"
+import { PlusSquare, Loader2, Image as ImageIcon, Video, ArrowLeft, Music, X } from "lucide-react"
 import Image from "next/image"
 import { addDoc, collection, serverTimestamp } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { songs } from "@/lib/data"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ScrollArea } from "@/components/ui/scroll-area"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -23,6 +27,8 @@ export default function CreatePostPage() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [selectedSong, setSelectedSong] = useState<string | null>(null);
+  const [isSongSelectorOpen, setIsSongSelectorOpen] = useState(false);
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -76,6 +82,7 @@ export default function CreatePostPage() {
             comments: 0,
             mediaUrl: mediaUrl,
             mediaType: mediaType || null,
+            song: selectedSong || null,
         });
     } catch (error) {
         console.error("Error creating post:", error);
@@ -85,6 +92,11 @@ export default function CreatePostPage() {
     
     setIsLoading(false);
     router.push(`/feed`);
+  }
+
+  const handleSelectSong = (song: Song) => {
+    setSelectedSong(`${song.title} - ${song.artist}`);
+    setIsSongSelectorOpen(false);
   }
 
   if (!currentUser) {
@@ -162,6 +174,61 @@ export default function CreatePostPage() {
                     onChange={(e) => setContent(e.target.value)}
                 />
             </div>
+            
+            {selectedSong && (
+                <div className="flex items-center justify-between p-2 rounded-md bg-muted/50 border">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Music className="h-4 w-4" />
+                        <span className="truncate">{selectedSong}</span>
+                    </div>
+                    <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => setSelectedSong(null)}>
+                        <X className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
+
+            <Dialog open={isSongSelectorOpen} onOpenChange={setIsSongSelectorOpen}>
+                <DialogTrigger asChild>
+                    <Button variant="outline" type="button">
+                        <Music className="mr-2 h-4 w-4" />
+                        Add Song
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                    <DialogTitle>Select a Song</DialogTitle>
+                    </DialogHeader>
+                    <Tabs defaultValue="hindi">
+                        <TabsList className="grid w-full grid-cols-2">
+                            <TabsTrigger value="hindi">Hindi</TabsTrigger>
+                            <TabsTrigger value="bhojpuri">Bhojpuri</TabsTrigger>
+                        </TabsList>
+                        <ScrollArea className="h-72">
+                            <TabsContent value="hindi">
+                                <div className="space-y-1 p-1">
+                                {songs.hindi.map((song, index) => (
+                                    <div key={`hindi-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
+                                        <p className="font-semibold">{song.title}</p>
+                                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                    </div>
+                                ))}
+                                </div>
+                            </TabsContent>
+                            <TabsContent value="bhojpuri">
+                                 <div className="space-y-1 p-1">
+                                {songs.bhojpuri.map((song, index) => (
+                                    <div key={`bhojpuri-${index}`} className="p-2 rounded-md hover:bg-muted cursor-pointer" onClick={() => handleSelectSong(song)}>
+                                        <p className="font-semibold">{song.title}</p>
+                                        <p className="text-sm text-muted-foreground">{song.artist}</p>
+                                    </div>
+                                ))}
+                                </div>
+                            </TabsContent>
+                        </ScrollArea>
+                    </Tabs>
+                </DialogContent>
+            </Dialog>
+
             
             <div className="flex justify-end">
                 <Button type="submit" disabled={isLoading || (!content.trim() && !mediaFile)}>
