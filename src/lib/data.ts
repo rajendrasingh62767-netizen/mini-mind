@@ -81,6 +81,8 @@ export const songs: SongCollection = {
     { title: "Kinna Sohna Tainu", artist: "Nusrat Fateh Ali Khan" },
     { title: "Akhiyan Udeek Diyan", artist: "Nusrat Fateh Ali Khan" },
     { title: "Dam Mast Qalandar", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Sanson Ki Mala Pe", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Nit Khair Manga", artist: "Nusrat Fateh Ali Khan" },
   ],
   talwinder: [
     { title: "Gallan", artist: "Talwinder" },
