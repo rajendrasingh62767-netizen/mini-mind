@@ -2,7 +2,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { users, followUser as followUserAction } from "@/lib/data"
+import { users } from "@/lib/data"
 import { getLoggedInUser } from "@/lib/auth"
 import { User, Notification as NotificationType } from "@/lib/types"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -13,7 +13,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { useRouter } from "next/navigation"
-import { collection, query, where, onSnapshot, doc, getDocs, updateDoc, orderBy } from 'firebase/firestore'
+import { collection, query, where, onSnapshot, doc, getDocs, updateDoc, orderBy, addDoc, serverTimestamp } from 'firebase/firestore'
 import { db } from "@/lib/firebase"
 
 
@@ -22,7 +22,7 @@ export default function NotificationsPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [notifications, setNotifications] = useState<NotificationType[]>([]);
   const [posts, setPosts] = useState<any[]>([]);
-  const [followingIds, setFollowingIds] = useState<string[]>([]);
+  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     const user = getLoggedInUser();
@@ -53,7 +53,7 @@ export default function NotificationsPage() {
          // Listen to who the current user is following
         const followingQuery = query(collection(db, "notifications"), where("type", "==", "follow"), where("fromUserId", "==", user.id));
         const followingUnsubscribe = onSnapshot(followingQuery, (snapshot) => {
-            const ids = snapshot.docs.map(doc => doc.data().toUserId);
+            const ids = new Set(snapshot.docs.map(doc => doc.data().toUserId));
             setFollowingIds(ids);
         });
 
@@ -70,13 +70,21 @@ export default function NotificationsPage() {
     await updateDoc(notifRef, { read: true });
   };
 
-  const handleFollowBack = (followerId: string) => {
-    if (!currentUser) return;
-    followUserAction(currentUser.id, followerId);
+  const handleFollowBack = async (followerId: string) => {
+    if (!currentUser || followingIds.has(followerId)) return;
+
+    const notificationsRef = collection(db, "notifications");
+     await addDoc(notificationsRef, {
+        type: 'follow',
+        fromUserId: currentUser.id,
+        toUserId: followerId,
+        timestamp: serverTimestamp(),
+        read: false,
+    });
   };
   
   const isFollowing = (userId: string) => {
-    return followingIds.includes(userId);
+    return followingIds.has(userId);
   };
 
 

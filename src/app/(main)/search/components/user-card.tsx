@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useReducer } from 'react';
@@ -7,8 +8,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { UserPlus, Check, UserX } from 'lucide-react';
 import Link from 'next/link';
-import { notifications, followUser, unfollowUser } from '@/lib/data';
+import { followUser, unfollowUser } from '@/lib/data';
 import { getLoggedInUser } from '@/lib/auth';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
 interface UserCardProps {
   user: User;
@@ -18,7 +21,6 @@ export default function UserCard({ user }: UserCardProps) {
   const [isFollowing, setIsFollowing] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hoveringFollow, setHoveringFollow] = useState(false);
-  const [_, forceUpdate] = useReducer((x) => x + 1, 0);
 
 
   useEffect(() => {
@@ -27,14 +29,20 @@ export default function UserCard({ user }: UserCardProps) {
   }, []);
   
   useEffect(() => {
-    if (currentUser) {
-      const followExists = notifications.some(
-          n => n.type === 'follow' &&
-          n.fromUserId === currentUser.id && n.toUserId === user.id
-      );
-      setIsFollowing(followExists);
-    }
-  }, [currentUser, user.id, notifications])
+    if (!currentUser) return;
+
+    const notifQuery = query(collection(db, "notifications"), 
+        where("type", "==", "follow"),
+        where("fromUserId", "==", currentUser.id),
+        where("toUserId", "==", user.id)
+    );
+
+    const unsubscribe = onSnapshot(notifQuery, (snapshot) => {
+        setIsFollowing(!snapshot.empty);
+    });
+
+    return () => unsubscribe();
+  }, [currentUser, user.id]);
 
 
   const handleFollowToggle = (e: React.MouseEvent) => {
@@ -43,12 +51,9 @@ export default function UserCard({ user }: UserCardProps) {
     
     if(isFollowing) {
         unfollowUser(currentUser.id, user.id);
-        setIsFollowing(false);
     } else {
         followUser(currentUser.id, user.id);
-        setIsFollowing(true);
     }
-    forceUpdate();
   }
 
   return (
