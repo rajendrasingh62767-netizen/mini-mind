@@ -15,7 +15,7 @@ import {
   SidebarTrigger,
   SidebarInset,
 } from "@/components/ui/sidebar"
-import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search, Bell, PlusSquare } from "lucide-react"
+import { Home, MessageCircle, User, Sparkles, LogOut, Settings, Search, Bell, PlusSquare, Video } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ConnectNowLogo } from "@/components/ConnectNowLogo"
 import { Button } from "@/components/ui/button"
@@ -109,6 +109,12 @@ export default function MainLayout({
                   <SidebarMenuButton href="/analyzer">
                     <Sparkles />
                     Profile Analyzer
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton href="/reels">
+                    <Video />
+                    AI Reel Generator
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               </SidebarMenu>
