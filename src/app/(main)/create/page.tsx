@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { songs } from "@/lib/data"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ScrollArea } from "@/components/ui/scroll-area"
+import { getSongAudio } from "./actions"
 
 export default function CreatePostPage() {
   const router = useRouter()
@@ -27,6 +28,7 @@ export default function CreatePostPage() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaType, setMediaType] = useState<'image' | 'video' | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [loadingMessage, setLoadingMessage] = useState("Posting...")
   const [selectedSong, setSelectedSong] = useState<string | null>(null);
   const [isSongSelectorOpen, setIsSongSelectorOpen] = useState(false);
 
@@ -60,20 +62,38 @@ export default function CreatePostPage() {
     setIsLoading(true);
 
     let mediaUrl: string | undefined = undefined;
+    let songAudioUrl: string | undefined = undefined;
+
     if (mediaFile) {
-      try {
-        const storage = getStorage();
-        const storageRef = ref(storage, `posts/${currentUser.id}/${Date.now()}-${mediaFile.name}`);
-        const snapshot = await uploadBytes(storageRef, mediaFile);
-        mediaUrl = await getDownloadURL(snapshot.ref);
-      } catch (error) {
-          console.error("Error uploading media:", error);
-          setIsLoading(false);
-          return;
-      }
+        setLoadingMessage("Uploading media...");
+        try {
+            const storage = getStorage();
+            const storageRef = ref(storage, `posts/${currentUser.id}/${Date.now()}-${mediaFile.name}`);
+            const snapshot = await uploadBytes(storageRef, mediaFile);
+            mediaUrl = await getDownloadURL(snapshot.ref);
+        } catch (error) {
+            console.error("Error uploading media:", error);
+            setIsLoading(false);
+            return;
+        }
+    }
+    
+    if (selectedSong) {
+        setLoadingMessage("Generating song audio...");
+        try {
+            const audioResult = await getSongAudio(selectedSong);
+            if (audioResult.success) {
+                songAudioUrl = audioResult.data;
+            } else {
+                console.warn("Could not generate song audio:", audioResult.error);
+            }
+        } catch (error) {
+            console.error("Error generating song audio:", error);
+        }
     }
     
     try {
+        setLoadingMessage("Finishing post...");
         await addDoc(collection(db, "posts"), {
             authorId: currentUser.id,
             content: content,
@@ -83,6 +103,7 @@ export default function CreatePostPage() {
             mediaUrl: mediaUrl,
             mediaType: mediaType || null,
             song: selectedSong || null,
+            songAudioUrl: songAudioUrl || null,
         });
     } catch (error) {
         console.error("Error creating post:", error);
@@ -255,7 +276,7 @@ export default function CreatePostPage() {
             <div className="flex justify-end">
                 <Button type="submit" disabled={isLoading || (!content.trim() && !mediaFile)}>
                      {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                     {isLoading ? "Posting..." : "Post"}
+                     {isLoading ? loadingMessage : "Post"}
                 </Button>
             </div>
           </form>

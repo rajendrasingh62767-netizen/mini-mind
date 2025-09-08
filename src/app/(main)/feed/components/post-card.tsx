@@ -179,7 +179,10 @@ export default function PostCard({ post, author }: PostCardProps) {
         {post.song && (
             <div className="flex items-center gap-2 text-sm text-muted-foreground p-2 rounded-md bg-muted/50 border">
                 <Music className="h-4 w-4" />
-                <span>{post.song}</span>
+                <span className="flex-1">{post.song}</span>
+                {post.songAudioUrl && (
+                    <audio controls src={post.songAudioUrl} className="h-8" />
+                )}
             </div>
         )}
         {post.mediaUrl && (

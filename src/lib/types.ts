@@ -17,6 +17,7 @@ export interface Post {
   mediaUrl?: string;
   mediaType?: 'image' | 'video';
   song?: string;
+  songAudioUrl?: string;
 }
 
 export interface Comment {
