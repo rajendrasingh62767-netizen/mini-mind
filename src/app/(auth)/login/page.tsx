@@ -29,9 +29,12 @@ export default function LoginPage() {
     setError("");
 
     const formData = new FormData(e.currentTarget);
-    const username = formData.get("username") as string;
+    const identifier = formData.get("identifier") as string;
     
-    const user = users.find(u => u.username.toLowerCase() === username.toLowerCase());
+    const user = users.find(u => 
+        u.username.toLowerCase() === identifier.toLowerCase() ||
+        u.email.toLowerCase() === identifier.toLowerCase()
+    );
 
     if (user) {
       saveUserToLocalStorage(user);
@@ -41,7 +44,7 @@ export default function LoginPage() {
       });
       router.push("/feed")
     } else {
-        setError("Invalid username or password.");
+        setError("Invalid credentials. Please try again.");
     }
   }
 
@@ -50,7 +53,7 @@ export default function LoginPage() {
       <CardHeader>
         <CardTitle className="text-2xl">Login</CardTitle>
         <CardDescription>
-          Enter your username below to login to your account.
+          Enter your username or email below to login.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -70,12 +73,12 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="grid gap-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="identifier">Username or Email</Label>
             <Input
-              id="username"
-              name="username"
+              id="identifier"
+              name="identifier"
               type="text"
-              placeholder="alexj"
+              placeholder="alexj or alex.j@example.com"
               required
             />
           </div>
