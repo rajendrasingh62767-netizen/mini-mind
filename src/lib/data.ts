@@ -76,6 +76,11 @@ export const songs: SongCollection = {
     { title: "Tumhe Dillagi", artist: "Nusrat Fateh Ali Khan" },
     { title: "Sanu Ek Pal Chain", artist: "Nusrat Fateh Ali Khan" },
     { title: "Allah Hoo Allah Hoo", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Yeh Jo Halka Halka Suroor Hai", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Mast Nazron Se Allah Bachaye", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Kinna Sohna Tainu", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Akhiyan Udeek Diyan", artist: "Nusrat Fateh Ali Khan" },
+    { title: "Dam Mast Qalandar", artist: "Nusrat Fateh Ali Khan" },
   ],
   talwinder: [
     { title: "Gallan", artist: "Talwinder" },
