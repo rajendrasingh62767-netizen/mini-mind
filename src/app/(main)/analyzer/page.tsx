@@ -1,3 +1,5 @@
+"use client"
+
 import AnalyzerForm from "./components/analyzer-form"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Sparkles } from "lucide-react";
